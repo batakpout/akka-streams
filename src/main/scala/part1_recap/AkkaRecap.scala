@@ -10,7 +10,7 @@ object AkkaRecap extends App {
     override def receive: Receive = {
       case "createChild" =>
         val childActor = context.actorOf(Props[SimpleActor], "myChild")
-        childActor ! "hello"
+        childActor !   "hello"
       case "stashThis" =>
         stash()
       case "change handler NOW" =>
