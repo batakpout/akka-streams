@@ -1,0 +1,28 @@
+--> Design asynchronous, back-pressured, incremental, , potentially infinite data processing systems.
+--> Specification of async, back-pressured streams.
+    publisher (emits elements async), subscriber (receives elements),
+    processor (transforms elements along the way)
+
+--> data flows async. (async op. is evaluated or executed at no well defined time) and this is done without blocking
+    any running code.
+
+--> Source emits elements asynchronously, may or may not terminate
+--> Sink terminates only when Source terminates.
+--> Flow (processor) transforms elements
+--> We building streams by connecting (Source, Flow, Sink)
+--> Direction: Upstream(to the source), downstream (to the sink)
+
+--> Actor-Materializer: In principle it allows running of akka stream components
+
+--> Sources can emit any kind of objects, as long as they are immutable and serializable, nulls are not allowed
+--> Materializing:
+    -> Components are static until they are run
+    --> run(), i.e running a graph, allocates right resources and gives us single materialized value
+    --> Running a Graph = Materializing a graph
+    --> Materializing a Graph = materializing all components i.e
+    --> each component produces a materialized value when run
+    --> A component can materialize multiple times
+    --> you can use the same component in different graphs
+    --> different runs = different materializations
+    --> A materialized value can be ANYTHING
+    --> A materialized value may or may not have any connection at all to the actual elements that go through the stream
