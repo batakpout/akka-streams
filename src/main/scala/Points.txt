@@ -20,9 +20,11 @@
     --> run(), i.e running a graph, allocates right resources and gives us single materialized value
     --> Running a Graph = Materializing a graph
     --> Materializing a Graph = materializing all components i.e
-    --> each component produces a materialized value when run
+    --> each component produces a materialized value when running a graph, but its up to us which materialized
+        value to take. The result of running graph is a single materialized value
     --> A component can materialize multiple times
     --> you can use the same component in different graphs
     --> different runs = different materializations
     --> A materialized value can be ANYTHING
     --> A materialized value may or may not have any connection at all to the actual elements that go through the stream
+    --> ActorMaterializer("") Objects that allocates the right resources to running an Akka Stream
