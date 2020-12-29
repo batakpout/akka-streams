@@ -3,7 +3,10 @@ package part2_primer
 import akka.actor.{Actor, ActorSystem, Props}
 import akka.stream.ActorMaterializer
 import akka.stream.scaladsl.{Flow, Sink, Source}
-
+/**
+ * akka stream components run on the same actor --operator/component fusion.
+  * Async boundaries between stream components, this yields better throughput when ops are time consuming.
+ */
 object OperatorFusion extends App {
 
   implicit val system = ActorSystem("OperatorFusion")
@@ -15,7 +18,7 @@ object OperatorFusion extends App {
   val simpleSink = Sink.foreach[Int](println)
 
   // this runs on the SAME ACTOR
-  //  simpleSource.via(simpleFlow).via(simpleFlow2).to(simpleSink).run()
+    //simpleSource.via(simpleFlow).via(simpleFlow2).to(simpleSink).run()
   // operator/component FUSION
 
   // "equivalent" behavior
@@ -29,7 +32,7 @@ object OperatorFusion extends App {
         println(y)
     }
   }
-  val simpleActor = system.actorOf(Props[SimpleActor])
+  //val simpleActor = system.actorOf(Props[SimpleActor])
   //  (1 to 1000).foreach(simpleActor ! _)
 
   // complex flows:
@@ -44,15 +47,15 @@ object OperatorFusion extends App {
     x * 10
   }
 
-  //  simpleSource.via(complexFlow).via(complexFlow2).to(simpleSink).run()
+  // simpleSource.via(complexFlow).via(complexFlow2).to(simpleSink).run()
 
-  // async boundary
-  //  simpleSource.via(complexFlow).async // runs on one actor
-  //    .via(complexFlow2).async  // runs on another actor
-  //    .to(simpleSink) // runs on a third actor
-  //    .run()
+   //async boundary: when individual operations are expensive
+  /*  simpleSource.via(complexFlow).async // runs on one actor
+      .via(complexFlow2).async  // runs on another actor
+      .to(simpleSink) // runs on a third actor
+      .run()*/
 
-  // ordering guarantees
+  // ordering guarantees : will be always with or without async boundaries.
   Source(1 to 3)
     .map(element => { println(s"Flow A: $element"); element }).async
     .map(element => { println(s"Flow B: $element"); element }).async

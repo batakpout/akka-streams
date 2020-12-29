@@ -130,12 +130,12 @@ object MaterializingStreams6 extends App {
   val simpleFlow = Flow[Int].map(x => x + 1)
   val simpleSink = Sink.foreach[Int](println)
   Source(1 to 10).runWith(Sink.reduce[Int](_ + _)) // source.to(Sink.reduce)(Keep.right)
-  Source(1 to 10).runReduce[Int](_ + _) // same
+  val res = Source(1 to 10).runReduce[Int](_ + _) // same
 
   // backwards , ordering doesn't matter.
   Sink.foreach[Int](println).runWith(Source.single(42)) // source(..).to(sink...).run()
   // both ways
-  Flow[Int].map(x => 2 * x).runWith(simpleSource, simpleSink)
+  val result = Flow[Int].map(x => 2 * x).runWith(simpleSource, simpleSink)
 }
 
 object MaterializingStreams7 extends App {
@@ -175,7 +175,7 @@ object MaterializingStreams8 extends App {
     "I love streams",
     "Materialized values are killing me"
   ))
-  val wordCountSink = Sink.fold[Int, String](0)((currentWords, newSentence) => currentWords + newSentence.split(" ").length)
+  val wordCountSink = Sink.fold[Int, String](0)((currentWordsCount, newSentence) => currentWordsCount + newSentence.split(" ").length)
   val g1 = sentenceSource.toMat(wordCountSink)(Keep.right).run()
   println( Await.result(g1, 1.seconds) )
   val g2 = sentenceSource.runWith(wordCountSink)
