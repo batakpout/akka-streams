@@ -1,4 +1,4 @@
-package part2_primer
+package from_daniel.part2_primer
 
 import akka.actor.{Actor, ActorSystem, Props}
 import akka.stream.ActorMaterializer

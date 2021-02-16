@@ -1,4 +1,4 @@
-package part4_techniques
+package from_daniel.part4_techniques
 
 import akka.actor.{Actor, ActorLogging, ActorSystem, Props}
 import akka.stream.{ActorMaterializer, OverflowStrategy}

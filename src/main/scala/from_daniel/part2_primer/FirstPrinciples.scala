@@ -1,4 +1,4 @@
-package part2_primer
+package from_daniel.part2_primer
 
 import akka.{Done, NotUsed}
 import akka.actor.ActorSystem
@@ -82,7 +82,7 @@ object FirstPrinciples4 extends App {
   // NOT have flatMap
 
   // source -> flow -> flow -> ... -> sink
-  val doubleFlowGraph = source.via(mapFlow).via(takeFlow).to(sink)
+  val doubleFlowGraph: RunnableGraph[NotUsed] = source.via(mapFlow).via(takeFlow).to(sink)
     doubleFlowGraph.run()
 
 }

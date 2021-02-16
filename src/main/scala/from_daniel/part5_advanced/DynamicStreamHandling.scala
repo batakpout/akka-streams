@@ -1,4 +1,4 @@
-package part5_advanced
+package from_daniel.part5_advanced
 
 import akka.actor.ActorSystem
 import akka.stream.scaladsl.{BroadcastHub, Keep, MergeHub, Sink, Source}

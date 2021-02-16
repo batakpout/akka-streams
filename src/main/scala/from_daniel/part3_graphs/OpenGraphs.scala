@@ -1,4 +1,4 @@
-package part3_graphs
+package from_daniel.part3_graphs
 
 import akka.actor.ActorSystem
 import akka.stream._

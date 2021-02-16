@@ -1,4 +1,4 @@
-package part2_primer
+package from_daniel.part2_primer
 
 import akka.actor.ActorSystem
 import akka.stream.{ActorMaterializer, OverflowStrategy}

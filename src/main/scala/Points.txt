@@ -7,6 +7,10 @@
     any running code.
 
 --> Source emits elements asynchronously, may or may not terminate
+    A Source is a set of stream processing steps that has one open output.
+    It can comprise any number of internal sources and transformations that are wired together,
+     or it can be an “atomic” source, e.g. from a collection or a file.
+     Materialization turns a Source into a Reactive Streams Publisher (at least conceptually).
 --> Sink terminates only when Source terminates.
 --> Flow (processor) transforms elements
 --> We building streams by connecting (Source, Flow, Sink)
