@@ -11,6 +11,7 @@ import scala.util.{Failure, Random, Success}
 /**
   * Fetching a meaningful value out of a running stream
   */
+
 object Just_For_Understanding extends App {
 
    implicit val system = ActorSystem("FirstPrinciples-10")
@@ -81,6 +82,17 @@ object MaterializingStream_1 extends App {
    }
 
    Thread.sleep(1000)
+
+     //Also
+   val keepsRightResult: Future[Int] = source.runWith(reduceSink) // source.toMat(sink)(Keep.right)
+   val res: Source[Int, NotUsed] = source.reduce(_ +_)
+   val directReduce: Future[Int] = source.runReduce(_ +_)
+   val directFold: Future[String] = source.runFold(" ")((seed, cur) => seed + cur)
+   Thread.sleep(1000)
+
+   //API for backward support
+   val back: NotUsed = Sink.foreach(println).runWith(Source.single(10)) // keep .left
+   val back2: (NotUsed, Future[Done]) = Flow[Int].map(_ + 1).runWith(source, sink)
 }
 
 object MaterializingStream_2 extends App {
@@ -122,6 +134,7 @@ object MaterializingStream_3 extends App {
    val sourceWithFlow: Source[Float, NotUsed] = source.via(flow) // this is keep.left
 
    val graph4: Source[Float, NotUsed] = source.viaMat(flow)(Keep.right) // coz return type of Flow is NotUsed
+   val graph5: Source[Float, NotUsed] = source.viaMat(flow)(Keep.left) // coz return type of Flow is NotUsed
 
 
 
@@ -146,19 +159,12 @@ object MaterializingStream_432 extends App {
       implicit val system = ActorSystem("FirstPrinciples-10")
       implicit val materializer = ActorMaterializer()
 
-      //val source: Source[String, NotUsed] = Source("hi how are you")
 
-      // val flow: Flow[String, Int, NotUsed] = Flow[String].map[Int](_.split(" ").length)
-      // val sink: Sink[String, Future[Done]] = Sink.foreach[Int](println)
-
-      //val rG: Source[Int, NotUsed] = source.via(flow)
-  //  override def via[T, Mat2](flow: Graph[FlowShape[Out, T], Mat2]): Repr[T] = viaMat(flow)(Keep.left)
-      //via[String, ]
       val incSource: Source[Int, NotUsed] = Source(1 to 10)
       val incFlow: Flow[Int, String, NotUsed] = Flow[Int].map[String](x => x + "a")
-      val graph1: Source[String, NotUsed] = incSource.via[String, NotUsed](incFlow) // default is toMat (Keep.left)
+      val graph1: Source[String, NotUsed] = incSource.via(incFlow) // default is toMat (Keep.left)
       val graph2: Source[String, NotUsed] = incSource.viaMat(incFlow)(Keep.right)
-      val graph3: Source[String, NotUsed] = incSource.viaMat(incFlow)(Keep.left)
+      val graph3: Source[String, NotUsed] = incSource.viaMat(incFlow)(Keep.left) // reason look at definition of toMat
 
 }
 object MaterializingStream_4 extends App {

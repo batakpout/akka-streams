@@ -96,7 +96,7 @@ object MaterializingStreams4 extends App {
   val source = Source(1 to 2)
   val flow = Flow[Int].map[Int](x => x + 2)
   val sinkA = Sink.fold[String, Int]("")(_ + _)
-  val graphNotUsed = source.viaMat(flow)(Keep.right).toMat(sinkA)(Keep.right)
+  val graphNotUsed: RunnableGraph[Future[String]] = source.viaMat(flow)(Keep.right).toMat(sinkA)(Keep.right)
 
   graphNotUsed.run().onComplete {
     case Success(e) => println(e)
@@ -128,7 +128,7 @@ object MaterializingStreams6 extends App {
   // sugars
   val simpleSource = Source(1 to 10)
   val simpleFlow = Flow[Int].map(x => x + 1)
-  val simpleSink = Sink.foreach[Int](println)
+  val simpleSink: Sink[Int, Future[Done]] = Sink.foreach[Int](println)
   Source(1 to 10).runWith(Sink.reduce[Int](_ + _)) // source.to(Sink.reduce)(Keep.right)
   val res = Source(1 to 10).runReduce[Int](_ + _) // same
 
