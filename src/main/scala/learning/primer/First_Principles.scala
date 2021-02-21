@@ -37,7 +37,7 @@ object First_Principles_2 extends App {
 
 object First_Principles_3 extends App {
 
-  implicit val system = ActorSystem("FirstPrinciples-2")
+  implicit val system = ActorSystem("FirstPrinciples-3")
   implicit val materializer = ActorMaterializer()
 
   val source: Source[Int, NotUsed] = Source(1 to 10)
@@ -55,7 +55,7 @@ object First_Principles_3 extends App {
 
 object First_Principles_4 extends App {
 
-  implicit val system = ActorSystem("FirstPrinciples-3")
+  implicit val system = ActorSystem("FirstPrinciples-4")
   implicit val materializer = ActorMaterializer()
 
   //flow transforms elements
@@ -87,7 +87,7 @@ object First_Principles_5 extends App {
 
 object First_Principles_6 extends App {
 
-  implicit val system = ActorSystem("FirstPrinciples-5")
+  implicit val system = ActorSystem("FirstPrinciples-6")
   implicit val materializer = ActorMaterializer()
 
   val source: Source[Int, NotUsed] = Source(1 to 10)
@@ -99,20 +99,20 @@ object First_Principles_6 extends App {
   val anotherFiniteSource: Source[Int, NotUsed] = Source(List(1,2,3,4))
   val emptySource: Source[Int, NotUsed] = Source.empty[Int]
 
-  Run_App.execute(finiteSource.to(sink))
+  Akka_Stream_Utils.execute(finiteSource.to(sink))
 
   Thread.sleep(1000)
   println("---1----")
 
-  Run_App.execute(anotherFiniteSource.to(sink))
+  Akka_Stream_Utils.execute(anotherFiniteSource.to(sink))
 
   Thread.sleep(1000)
   println("---2----")
 
-  Run_App.execute(emptySource.to(sink))
+  Akka_Stream_Utils.execute(emptySource.to(sink))
   println("--3----")
   val infiniteStream: Source[Int, NotUsed] = Source(Stream.from(1)) // do not confuse an akka stream with a "collection" Stream
-  //Run_App.execute(infiniteStream.to(sink))
+  //Akka_Stream_Utils.execute(infiniteStream.to(sink))
 
   Thread.sleep(1000)
   println("--4----")
@@ -120,7 +120,7 @@ object First_Principles_6 extends App {
   import system.dispatcher
   val futureSource: Source[Int, NotUsed] = Source.fromFuture(Future(42))
   val res: RunnableGraph[NotUsed] = futureSource.to(sink)
-  Run_App.execute(res)
+  Akka_Stream_Utils.execute(res)
 
   Thread.sleep(1000)
   println("--5----")
@@ -129,32 +129,32 @@ object First_Principles_6 extends App {
 
 object First_Principles_7 extends App {
 
-  implicit val system = ActorSystem("FirstPrinciples-5")
+  implicit val system = ActorSystem("FirstPrinciples-7")
   implicit val materializer = ActorMaterializer()
 
   val source: Source[Int, NotUsed] = Source(1 to 4)
 
   val theMostBoringSink: Sink[Any, Future[Done]] = Sink.ignore
 
-  Run_App.execute(source.to(theMostBoringSink))
+  Akka_Stream_Utils.execute(source.to(theMostBoringSink))
 
   Thread.sleep(1000)
   println("----1----")
 
   val forEachSink: Sink[Int, Future[Done]] = Sink.foreach[Int](println)
-  Run_App.execute(source.to(forEachSink))
+  Akka_Stream_Utils.execute(source.to(forEachSink))
 
   Thread.sleep(1000)
   println("----2----")
 
   val headSink: Sink[Int, Future[Int]] = Sink.head[Int] //retrieves head and then closes the stream
-  Run_App.executeWithPrintln(source.toMat(headSink)(Keep.right))
+  Akka_Stream_Utils.executeWithPrintln(source.toMat(headSink)(Keep.right))
 
   Thread.sleep(1000)
   println("----3----")
 
   val foldSink = Sink.fold[Int, Int](0)(_ + _)
-  Run_App.executeWithPrintln(source.toMat(foldSink)(Keep.right))
+  Akka_Stream_Utils.executeWithPrintln(source.toMat(foldSink)(Keep.right))
 
   Thread.sleep(1000)
   println("----4----")
@@ -164,7 +164,7 @@ object First_Principles_7 extends App {
 
 object First_Principles_8 extends App {
 
-    implicit val system = ActorSystem("FirstPrinciples-5")
+    implicit val system = ActorSystem("FirstPrinciples-8")
     implicit val materializer = ActorMaterializer()
 
   val source: Source[Int, NotUsed] = Source(1 to 4)
@@ -175,22 +175,22 @@ object First_Principles_8 extends App {
   val takeFlow: Flow[Int, Int, NotUsed] = Flow[Int].take(2)
   //same way drop, filer, NOT have flatMap
 
-  Run_App.execute(source.via(mapFlow).to(sink))
+  Akka_Stream_Utils.execute(source.via(mapFlow).to(sink))
 
   Thread.sleep(1000)
   println("----1----")
 
-  Run_App.execute(source.via(takeFlow).to(sink))
+  Akka_Stream_Utils.execute(source.via(takeFlow).to(sink))
 
   Thread.sleep(1000)
   println("----2----")
 
-  Run_App.execute(source.via(mapFlow).via(takeFlow).to(sink))
+  Akka_Stream_Utils.execute(source.via(mapFlow).via(takeFlow).to(sink))
 }
 
 object First_Principles_9 extends App {
 
-  implicit val system = ActorSystem("FirstPrinciples-5")
+  implicit val system = ActorSystem("FirstPrinciples-9")
   implicit val materializer = ActorMaterializer()
 
   val source: Source[Int, NotUsed] = Source(1 to 4)
@@ -200,7 +200,7 @@ object First_Principles_9 extends App {
 
   val mapSource: Source[Int, NotUsed] = Source(1 to 4).map(_ + 2) // equivalent to Source(1 to 10).via(Flow[Int].map(_ + 2))
 
-  Run_App.execute(mapSource.to(sink))
+  Akka_Stream_Utils.execute(mapSource.to(sink))
 
   Thread.sleep(1000)
   println("----1----")
@@ -235,14 +235,5 @@ object First_Principles_9 extends App {
 }
 
 
-object Run_App extends App {
-  def execute[T](rG: RunnableGraph[T])(implicit actorMaterializer: ActorMaterializer) = {
-    rG.run()
-  }
 
-  def executeWithPrintln[T](rG: RunnableGraph[T])(implicit actorMaterializer: ActorMaterializer) = {
-    println{
-      rG.run()
-    }
-  }
-}
+
