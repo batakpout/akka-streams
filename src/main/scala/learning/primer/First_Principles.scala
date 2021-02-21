@@ -66,7 +66,7 @@ object First_Principles_4 extends App {
   val flow: Flow[Int, Int, NotUsed] = Flow[Int].map(_ + 2) //mentioning type is necessary
 
   val sourceWithFlow: Source[Int, NotUsed] = source.via(flow)
-  val flowToSink: Sink[Int, NotUsed] = flow.to(sink) //toMat(sink)(Keep.left)
+  val flowToSink: Sink[Int, NotUsed] = flow.to(sink) //toMat(sink)(Keep.left) //keeping materialized value of left i.e flow i.e Not Used
 
   val typ1: RunnableGraph[NotUsed] = sourceWithFlow.to(sink)
   val typ2: RunnableGraph[NotUsed] = source.to(flowToSink)
@@ -119,7 +119,8 @@ object First_Principles_6 extends App {
 
   import system.dispatcher
   val futureSource: Source[Int, NotUsed] = Source.fromFuture(Future(42))
-  Run_App.execute(futureSource.to(sink))
+  val res: RunnableGraph[NotUsed] = futureSource.to(sink)
+  Run_App.execute(res)
 
   Thread.sleep(1000)
   println("--5----")
@@ -205,7 +206,7 @@ object First_Principles_9 extends App {
   println("----1----")
 
   //run Stream directly
-  val result: Future[Done] = mapSource.runWith(sink)
+  val result: Future[Done] = mapSource.runWith(sink) //equivalent to mapSource.to(Sink.foreach(println)).run()
 
   Thread.sleep(1000)
   println("----2----")

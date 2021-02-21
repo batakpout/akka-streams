@@ -1,7 +1,10 @@
---> Design asynchronous, back-pressured, incremental, , potentially infinite data processing systems.
+--> Design asynchronous, back-pressured, incremental, potentially infinite data processing systems. (known as Reactive Streams)
+--> Reactive streams is an SPI (servide provider interface), not an API. Akka Streams are API
 --> Specification of async, back-pressured streams.
     publisher (emits elements async), subscriber (receives elements),
     processor (transforms elements along the way)
+
+    --> Components/Operators of akka-stream (source, flow, sink)
 
 --> data flows async. (async op. is evaluated or executed at no well defined time) and this is done without blocking
     any running code.
@@ -21,7 +24,7 @@
 --> Sources can emit any kind of objects, as long as they are immutable and serializable, nulls are not allowed
 --> Materializing:
     -> Components are static until they are run
-    --> run(), i.e running a graph, allocates right resources and gives us single materialized value
+    --> run(), i.e running a graph, allocates right resources(actor, thread, socket etc) and gives us single materialized value
     --> Running a Graph = Materializing a graph
     --> Materializing a Graph = materializing all components i.e
     --> each component produces a materialized value when running a graph, but its up to us which materialized
@@ -29,6 +32,6 @@
     --> A component can materialize multiple times
     --> you can use the same component in different graphs
     --> different runs = different materializations
-    --> A materialized value can be ANYTHING
+    --> A materialized value can be ANYTHING(connecting to some service, unit, Future, 32 anything)
     --> A materialized value may or may not have any connection at all to the actual elements that go through the stream
     --> ActorMaterializer("") Objects that allocates the right resources to running an Akka Stream
