@@ -297,6 +297,7 @@ object MaterializingStream_8 extends App {
 
    val wordCountFlow: Flow[String, Int, NotUsed] = Flow[String].fold[Int](0)((acc, cur_value) => acc + cur_value.split(" ").length)
 
+   val x: Source[Int, NotUsed] =  sentenceSource.via(wordCountFlow)
    val g1: Future[Int] = sentenceSource.via(wordCountFlow).toMat(Sink.head)(Keep.right).run()
    println( Await.result(g1, 1.seconds))
    Thread.sleep(1000)
@@ -306,7 +307,8 @@ object MaterializingStream_8 extends App {
    val g6 = sentenceSource.via(wordCountFlow).runWith(Sink.head)
    println( Await.result(g6, 1.seconds) )
    Thread.sleep(1000)
-   val g7: Future[Int] = wordCountFlow.runWith(sentenceSource, Sink.head)._2
+   val g77: (NotUsed, Future[Int]) = wordCountFlow.runWith(sentenceSource, Sink.head)
+   val g7 = g77._2
    println(Await.result(g7, 1.seconds))
 
 }
