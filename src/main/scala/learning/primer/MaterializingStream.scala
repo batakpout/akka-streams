@@ -199,8 +199,23 @@ object MaterializingStream_5 extends App {
 
    //keeping both values
 
+
+
+   val ss: Sink[String, NotUsed] = splitFlow.toMat(reduceSink)(Keep.left)
+   val mm: Sink[String, Future[Int]] = splitFlow.toMat(reduceSink)(Keep.right)
+   val gg: Sink[String, (NotUsed, Future[Int])] = splitFlow.toMat(reduceSink)(Keep.both)
+
+   val dd: Source[Int, (NotUsed, NotUsed)] =
+      source.viaMat(splitFlow)(Keep.both)
+
+   val ee: Source[Int, NotUsed] =
+      source.viaMat(splitFlow)(Keep.right)
+
    val result2: RunnableGraph[((NotUsed, NotUsed), Future[Int])] =
       source.viaMat(splitFlow)(Keep.both).toMat(reduceSink)(Keep.both)
+
+   val result3: RunnableGraph[Future[Int]] =
+      source.viaMat(splitFlow)(Keep.both).toMat(reduceSink)(Keep.right)
 
    val graph1: RunnableGraph[Future[Done]] = source.viaMat(splitFlow)(Keep.right).
             toMat(printSink)(Keep.right)
@@ -219,7 +234,7 @@ object MaterializingStream_6 extends App {
    implicit val materializer = ActorMaterializer()
 
    import system.dispatcher
-   val f1 = Source(1 to 10).toMat(Sink.last)(Keep.right).run()
+   val f1: Future[Int] = Source(1 to 10).toMat(Sink.last)(Keep.right).run()
    f1.onComplete {
       case Success(e) => println(e)
       case Failure(e) => println(e.toString)
@@ -256,12 +271,12 @@ object MaterializingStream_7 extends App {
    //Sink.fold is Keep.right
    val wordCountSink: Sink[String, Future[Int]] = Sink.fold[Int, String](0)((acc, cur_value) => acc + cur_value.split(" ").length)
 
-   val g1 = sentenceSource.runWith(wordCountSink)
+   val g1: Future[Int] = sentenceSource.runWith(wordCountSink)
    println( Await.result(g1, 1.seconds))
    Thread.sleep(1000)
 
    //or
-   val g2 = sentenceSource.toMat(wordCountSink)(Keep.right).run()
+   val g2: Future[Int] = sentenceSource.toMat(wordCountSink)(Keep.right).run()
    println( Await.result(g2, 1.seconds))
    Thread.sleep(1000)
 
@@ -285,13 +300,13 @@ object MaterializingStream_8 extends App {
    val g1: Future[Int] = sentenceSource.via(wordCountFlow).toMat(Sink.head)(Keep.right).run()
    println( Await.result(g1, 1.seconds))
    Thread.sleep(1000)
-   val g5 = sentenceSource.viaMat(wordCountFlow)(Keep.left).toMat(Sink.head)(Keep.right).run()
+   val g5: Future[Int] = sentenceSource.viaMat(wordCountFlow)(Keep.left).toMat(Sink.head)(Keep.right).run()
    println( Await.result(g5, 1.seconds) )
    Thread.sleep(1000)
    val g6 = sentenceSource.via(wordCountFlow).runWith(Sink.head)
    println( Await.result(g6, 1.seconds) )
    Thread.sleep(1000)
-   val g7 = wordCountFlow.runWith(sentenceSource, Sink.head)._2
+   val g7: Future[Int] = wordCountFlow.runWith(sentenceSource, Sink.head)._2
    println(Await.result(g7, 1.seconds))
 
 }
