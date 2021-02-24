@@ -36,9 +36,8 @@ object OperatorFusion1 extends App {
   //(1 to 10).foreach(actorRef ! _)
   /** Operator Fusion is nice because normally there is a time overhead for the async messages passing between the actors of each of these
     * akka stream components which takes a while.
-    * If operation inside components are good then operator fusion is good, that is what akka streams does by default
-    * So, when the operations inside these components are quick then operation fusion is good. otherwise,
-    *
+    * If operation inside components are fast then operator fusion is good, that is what akka streams does by default
+    * So, when the operations inside these components are quick then operation fusion is good.
     */
 
 
@@ -51,8 +50,6 @@ object OperatorFusion2 extends App {
   implicit val materializer = ActorMaterializer()
 
   val simpleSource = Source(1 to 10)
-  val simpleFlow1 = Flow[Int].map[Int](_ + 1)
-  val simpleFlow2 = Flow[Int].map[Int](_ * 10)
   val simpleSink = Sink.foreach[Int](println)
 
 
@@ -89,7 +86,7 @@ object OperatorFusion2 extends App {
     * source -> compleFlow1 | complexFlow2 | sink
     *       async boundary  |   actor2     | actor3
     *<_ ________actor1 _____|              |
-    *                       |async boundary|
+    *                       |async boundary| other one
     *                       |              |
     * ______________________|______________|
     */

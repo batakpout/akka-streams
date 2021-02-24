@@ -5,15 +5,15 @@ import akka.stream.{ActorMaterializer, OverflowStrategy}
 import akka.stream.scaladsl.{Flow, Sink, Source}
 
 /**
-  * One of the fundamental features of Reactive Streams
-  * Elements flow as response to demand from Consumers
-  * So Sink issue demand from upstream and so on to source, and after that elements start flowing
+  * One of the fundamental features of Reactive Streams.
+  * Elements flow as response to demand from Consumers.
+  * So Sink issue demand to upstream and so on to source, and after that elements start flowing in the stream.
   * It's all about the synchronization of speed in between these asynchronous components.
-  * Slow Consumer problem: producer producing faster than consumer is able to process them so,
-  * in this case consumer sends a signal to upstream to slow down, if flow component is able to comply,
-  * then it itself sends signal to upstream to slow down which will limit the production of elements
-  * at the source, so flow of entire stream is slowed down, if consumer sends  more demand then rate
-  * of then stream may increase again. This protocol is called Back pressure protocol
+  * Slow Consumer problem: producer producing faster than consumer, consumer is able not to process them so,
+  * consumer sends a signal to upstream (to e.g flow) to slow down , if flow component is unable to comply,
+  * then it itself sends signal to upstream to slow down, which will limit the production of elements
+  * at the source, so flow of entire stream is slowed down.
+  * If consumer sends  more demand then rate of then stream may increase again. This protocol is called Back pressure protocol
   * So backpressure is all about slowing down a fast producer in presence of a slow consumer
   */
 object BackpressureBasics1 extends App {

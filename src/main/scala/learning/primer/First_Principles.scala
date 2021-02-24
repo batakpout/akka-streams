@@ -47,10 +47,9 @@ object First_Principles_3 extends App {
   val res: Future[Int] = graph.run
 
   import scala.concurrent.Await
-  import scala.concurrent.duration.Duration
-  import java.util.concurrent.TimeUnit
+  import scala.concurrent.duration._
 
-  println(Await.result(res, Duration(1, TimeUnit.SECONDS)))
+  println(Await.result(res, 2.second))
 }
 
 object First_Principles_4 extends App {
