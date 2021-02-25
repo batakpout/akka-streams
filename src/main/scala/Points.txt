@@ -1,5 +1,5 @@
 --> Design asynchronous, back-pressured, incremental, potentially infinite data processing systems. (known as Reactive Streams)
---> Reactive streams is an SPI (servide provider interface), not an API. Akka Streams are API
+--> Reactive streams is an SPI (service provider interface), not an API. Akka Streams are API
 --> Specification of async, back-pressured streams.
     publisher (emits elements async), subscriber (receives elements),
     processor (transforms elements along the way)
@@ -32,7 +32,7 @@
         value to take. The result of running graph is a single materialized value
     --> A component can materialize multiple times
     --> you can use the same component in different graphs
-    --> different runs = different materializations
+    --> different runs = different materialization
     --> A materialized value can be ANYTHING(connecting to some service, unit, Future, 32 anything)
     --> A materialized value may or may not have any connection at all to the actual elements that go through the stream
     --> ActorMaterializer("") Objects that allocates the right resources to running an Akka Stream

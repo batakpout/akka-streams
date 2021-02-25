@@ -15,7 +15,7 @@ object First_Principles_1 extends App {
   //sources
   val source: Source[Int, NotUsed] = Source(1 to 10)
   //sink
-  val sink: Sink[Int, Future[Done]] = Sink.foreach(println)
+  val sink: Sink[Int, Future[Done]] = Sink.foreach[Int](println)
 
   val graph: RunnableGraph[NotUsed] = source.to(sink)
   val res: NotUsed = graph.run
