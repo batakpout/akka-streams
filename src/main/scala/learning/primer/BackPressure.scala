@@ -46,7 +46,8 @@ object BackPressure_2 extends App {
   val slowSink: Sink[Int, Future[Done]] = Sink.foreach { x =>
     //simulate a long computation
     Thread.sleep(1000)
-    println(x)
+    println(s"Sink $x")
+
   }
 
   //here we have an actual backpressure in place, applied by akka steams
@@ -72,14 +73,20 @@ object BackPressure_3 extends App {
 
   /**
     * Sink sends back-pressure signals to up-stream till Flow,
-    * Flow, with default buffer size = 16, processes 16 messages from Source, then, when buffer is full,
-    * it sends back-pressure signal to Source to slow down till there is some demand from sink.
-    * As soon as Sink will start consuming messages, Flow will process some more messages from Source till buffer is full,
-    * and so on and so forth
+    * Source has default buffer size of 16, buffers till there is demand.
+    * As soon as Sink will start consuming messages, elements will flow in stream and so on and so forth.
     * Internally, the threshold is when the buffer is half empty (8 in our case).
     * This explains the batches of 8 that you see in the console.
     */
-  fastSource.async.
+/*  fastSource.async.
+    via(simpleFlow).async.
+    to(slowSink).run*/
+
+  /**
+    * No difference in output:
+    * Source: 16 buffer size
+    */
+  fastSource.
     via(simpleFlow).async.
     to(slowSink).run
 }
@@ -99,20 +106,31 @@ object BackPressure_4 extends App {
   implicit val system = ActorSystem("BackPressure-3")
   implicit val materializer = ActorMaterializer()
 
-  val fastSource: Source[Int, NotUsed] = Source(1 to 10000)
+  val fastSource: Source[Int, NotUsed] = Source(1 to 1000)
   val slowSink: Sink[Int, Future[Done]] = Sink.foreach { x =>
     //simulate a long computation
     Thread.sleep(1000)
-    println(x)
+    println(s"Sink: $x")
   }
   val simpleFlow: Flow[Int, Int, NotUsed] = Flow[Int].map[Int] { x =>
     println(s"Incoming: $x")
     x + 1
   }
-  val bufferedFlow = simpleFlow.buffer(size = 10, overflowStrategy = OverflowStrategy.fail)
+  /**
+    * Source Buffer size = 16 + 6 (Flow Buffer Size) = 22
+    */
+  val bufferedFlow = simpleFlow.buffer(size = 6, overflowStrategy = OverflowStrategy.dropTail)
+
   fastSource.async.
     via(bufferedFlow).async.
     to(slowSink).run
+
+  /**
+    * fastSource.via(bufferedFlow).async, has a total buffer size of 6
+    */
+/*  fastSource.
+    via(bufferedFlow).async.
+    to(slowSink).run*/
 
 }
 
@@ -123,62 +141,10 @@ object BackPressure_5 extends App {
   implicit val system = ActorSystem("BackPressure-3")
   implicit val materializer = ActorMaterializer()
 
-  val fastSource: Source[Int, NotUsed] = Source(1 to 10000)
+  val fastSource: Source[Int, NotUsed] = Source(1 to 1000)
 
   import scala.concurrent.duration._
   //1,, 8 : means emit only 1 element per 8 second
   fastSource.throttle(1, 8.second).to(Sink.foreach(println)).run()
 }
 
-object BackPressure_6 extends App {
-
-  implicit val system = ActorSystem("BackPressure-3")
-  implicit val materializer = ActorMaterializer()
-
-  val fastSource = Source(1 to 1000)
-  val slowSink = Sink.foreach[Int](x=>{
-    Thread.sleep(1000)
-    println(s"Sink $x")
-  })
-  val flow = Flow[Int].map{x=>
-    println(s"Incoming $x")
-    x
-  }
-
-  val bufferedFlow = flow.buffer(5, overflowStrategy = OverflowStrategy.dropTail)
-  //val bufferedFlow = flow.buffer(5, overflowStrategy = OverflowStrategy.fail) // o/p 996,997,998,999,1000, makes sense i.e when buffer is full, drop the buffer
-  /**
-    * OverflowStrategy.fail == when  buffer is full, stop processing any message from Source
-    * OverFlowStrategy.dropBuffer= when  buffer is full, drop the buffer
-    */
-
-  /**
-    * When we use async boundary on fastSource.async, then only Sink will get a buffer size of 16 (as on different thread), else
-    * it won't have buffer, and processes elements from Flow buffer
-    */
-  fastSource.
-    via(bufferedFlow).async
-    .to(slowSink).run
-}
-
-object BackPressure extends App {
-
-  implicit val system = ActorSystem("BackPressure-3")
-  implicit val materializer = ActorMaterializer()
-
-  val fastSource = Source(1 to 1000)
-  val slowSink = Sink.foreach[Int](x=>{
-    Thread.sleep(1000)
-    println(s"Sink $x")
-  })
-  val flow = Flow[Int].map{x=>
-    println(s"Incoming $x")
-    x
-  }
-
-  val bufferedFlow = flow.buffer(5, overflowStrategy = OverflowStrategy.dropTail)
-
-  fastSource.async.
-    via(bufferedFlow).async
-    .to(slowSink).run
-}
