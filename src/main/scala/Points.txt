@@ -1,3 +1,14 @@
+--> Akka Streams allows Stream Processing, Stream processing allows us to model data manipulation as a flow of data.
+--> Akka Streams implements Reactive Stream standards.
+--> Reactive Stream Standard: Reactive Stream is an initiative to provide a standard for asynchronous stream
+    processing with non-blocking back pressure.
+--> alpakka connects akka-streams to other technologies and tries to apply the same properties to those
+    technologies. "Alpakka- endpoints for akka streams". We have alpakka connectors for cloud services
+    (aws, google cloud, azure), data sources (cassandra, hadoop, elasticsearch, mongo etc) and
+    messaging (apache kafka, RabbitMQ, MQTT, JMS (java messaging service) etc)
+--> A different area in alpakka is data-transformations, we go from one format method to another
+    (e.g JSON, csv, xml etc)
+
 --> Design asynchronous, back-pressured, incremental, potentially infinite data processing systems. (known as Reactive Streams)
 --> Reactive streams is an SPI (service provider interface), not an API. Akka Streams are API
 --> Specification of async, back-pressured streams.

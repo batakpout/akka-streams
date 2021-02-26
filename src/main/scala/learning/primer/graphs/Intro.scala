@@ -207,7 +207,7 @@ object Intro5 extends App {
   })
 
   val balanceGraph: RunnableGraph[NotUsed] = RunnableGraph.fromGraph(
-    GraphDSL.create() {implicit builder: GraphDSL.Builder[NotUsed] =>
+    GraphDSL.create() { implicit builder: GraphDSL.Builder[NotUsed] =>
       import GraphDSL.Implicits._
 
       val merge = builder.add(Merge[Int](2))
@@ -225,7 +225,7 @@ object Intro5 extends App {
     * So, the number of elements that go through sink1 and sink2 are basically balanced
     * So, that's what this balance fan-out component does
     *
-    * So, this balancedGraph does in total, takes two different speed sources emitting elements at different speeds
+    * So, what this balancedGraph does in total, takes two different speed sources emitting elements at different speeds
     * and it even out the rate of production of elements in between these two sources and splits them equally into
     * two sinks
     * Can be a real time example too, different speed source -> end of graph, like to have a study flow of elements.
