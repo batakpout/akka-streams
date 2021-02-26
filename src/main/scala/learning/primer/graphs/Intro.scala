@@ -12,8 +12,8 @@ import scala.concurrent.Future
   * Write complex Akka Streams graphs
   * familiarize with the Graph DSL
   * Non-linear components:
-  * fan-out components (single input multiple output)
-  * fan-in components (multiple inputs single output)
+  * fan-out components (single input multiple output) : Balance, Broadcast
+  * fan-in components (multiple inputs single output): Merge, Zip/ZipWIth, Concat
   */
 object Intro1 extends App {
   implicit val system = ActorSystem("Intro1")
@@ -149,8 +149,8 @@ object Intro4 extends App {
     import scala.concurrent.duration._
 
   val input: Source[Int, NotUsed] = Source(1 to 1000)
-  val slowSource = input.throttle(2, 1.second)
-  val fastSource = input.throttle(5, 1.second)
+  val slowSource = input.throttle(1, 10.second)
+  val fastSource = input.throttle(10, 1.second)
   val sink1 = Sink.foreach[Int](x => println(s"Sink 1: $x"))
   val sink2 = Sink.foreach[Int](x => println(s"Sink 2: $x"))
 
@@ -162,7 +162,14 @@ object Intro4 extends App {
        val merge = builder.add(Merge[Int](2))
        val balance = builder.add(Balance[Int](2))
 
-       fastSource ~> merge ~> balance ~> sink1
+      /**
+        *   fastSource ~> merge.in(0)
+            slowSource ~> merge.in(1)
+            merge ~> balance
+            balance.out(0) ~> sink1
+            balance.out(1) ~> sink2
+        */
+      fastSource ~> merge ~> balance ~> sink1
        slowSource ~> merge
       balance ~> sink2
       //tie them up
@@ -187,8 +194,8 @@ object Intro5 extends App {
   import scala.concurrent.duration._
 
   val input: Source[Int, NotUsed] = Source(1 to 1000)
-  val slowSource = input.throttle(2, 1.second)
-  val fastSource = input.throttle(5, 1.second)
+  val slowSource = input.throttle(2, 4.second)
+  val fastSource = input.throttle(6, 1.second)
 
   val sink1 = Sink.fold[Int, Int](0)((count, _) => {
     println(s"Sink 1 number of elements: $count")
