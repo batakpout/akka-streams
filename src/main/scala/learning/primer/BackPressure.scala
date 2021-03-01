@@ -145,6 +145,31 @@ object BackPressure_5 extends App {
 
   import scala.concurrent.duration._
   //1,, 8 : means emit only 1 element per 8 second
-  fastSource.throttle(1, 8.second).to(Sink.foreach(println)).run()
+  fastSource.throttle(2, 8.second).to(Sink.foreach(println)).run()
 }
+object BackPressure_Fast_Slow_Test extends App {
+  /**
+    * We have a back pressure centric method on akka streams to manually trigger back pressure: throttling
+    */
+  implicit val system = ActorSystem("BackPressure-3")
+  implicit val materializer = ActorMaterializer()
+
+  val fastSource: Source[Int, NotUsed] = Source(1 to 100)
+
+  import scala.concurrent.duration._
+
+  val sink = Sink.fold[Int, Int](0) { (count, element) =>
+    println(s"Sink: $count, element: $element")
+    count + element
+  }
+  val res: Future[Int] = fastSource.throttle(5, 2.second)runWith(sink)
+  import system.dispatcher
+  res.map{ x=>
+    println("value of sum is: " + x)
+  }
+
+  Thread.sleep(1000000)
+
+}
+
 

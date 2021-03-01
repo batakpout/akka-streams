@@ -1,0 +1,8 @@
+--> Akka streams enables the consumption of streamed data, in a fully non-blocking asynchronous manner. It allows us
+    to consume that data while providing non-blocking back-pressure to prevent mailbox overflow
+
+--> Understand how to build linear stream using Sources, Sinks, and Flows
+--> Understand how to implement fault tolerant steams
+--> know how to introduce non-linear graph shapes into your stream
+--> know how to performance tune akka streams by optimizing Fusion
+--> Be confident to start using akka streams in production systems

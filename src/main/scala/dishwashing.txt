@@ -1,0 +1,1 @@
+https://www.lightbend.com/blog/7-ways-washing-dishes-and-message-driven-reactive-systems

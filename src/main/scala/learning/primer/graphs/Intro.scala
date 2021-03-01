@@ -97,8 +97,8 @@ object Intro2 extends App {
 
       //tying up the components
       input ~> broadcast
-      broadcast.out(0) ~> firstSink
-      broadcast.out(1) ~> secondSink
+      broadcast.out(0) ~> secondSink
+      broadcast.out(1) ~> firstSink
       ClosedShape
     }
 
@@ -148,9 +148,10 @@ object Intro4 extends App {
     */
     import scala.concurrent.duration._
 
-  val input: Source[Int, NotUsed] = Source(1 to 1000)
-  val slowSource = input.throttle(1, 10.second)
-  val fastSource = input.throttle(10, 1.second)
+  val input: Source[Int, NotUsed] = Source(1 to 20)
+  val fastSource = input.throttle(5, 1 second)
+  val slowSource = input.throttle(2, 1 second)
+
   val sink1 = Sink.foreach[Int](x => println(s"Sink 1: $x"))
   val sink2 = Sink.foreach[Int](x => println(s"Sink 2: $x"))
 
@@ -165,7 +166,7 @@ object Intro4 extends App {
       /**
         *   fastSource ~> merge.in(0)
             slowSource ~> merge.in(1)
-            merge ~> balance
+            merge (merge.out) ~> balance (balance.in)
             balance.out(0) ~> sink1
             balance.out(1) ~> sink2
         */
@@ -193,16 +194,16 @@ object Intro5 extends App {
 
   import scala.concurrent.duration._
 
-  val input: Source[Int, NotUsed] = Source(1 to 1000)
-  val slowSource = input.throttle(2, 4.second)
-  val fastSource = input.throttle(6, 1.second)
+  val input: Source[Int, NotUsed] = Source(1 to 10)
+  val fastSource = input.throttle(5, 1 second)
+  val slowSource = input.throttle(2, 1 second)
 
-  val sink1 = Sink.fold[Int, Int](0)((count, _) => {
-    println(s"Sink 1 number of elements: $count")
+  val sink1 = Sink.fold[Int, Int](0)((count, element) => {
+    println(s"Sink 1, count: $count, element: $element")
     count + 1
   })
-  val sink2 = Sink.fold[Int, Int](0)((count, _) => {
-    println(s"Sink 2 number of elements: $count")
+  val sink2 = Sink.fold[Int, Int](0)((count, element) => {
+    println(s"Sink 2, count: $count, element: $element")
     count + 1
   })
 
@@ -232,4 +233,43 @@ object Intro5 extends App {
     * Merge them and then balance them out
     */
   balanceGraph.run()
+}
+
+object From_Daniel_Questions extends App {
+
+  implicit val system = ActorSystem("Intro1")
+  implicit val materializer = ActorMaterializer()
+
+
+  import scala.concurrent.duration._
+  val source1 = Source(1 to 10).delay( 2 seconds)
+  val source2 = Source(20 to 40).delay(1 seconds)
+
+  val sinkSimple1 = Sink.fold[Int, Int](0)((count, element) => {
+    println(s"sink1 $element $count")
+    count+1
+  })
+  val sinkSimple2 = Sink.fold[Int, Int](0)((count, element) => {
+    println(s"sink2 $element $count")
+    count+1
+  })
+
+  val rgraph = RunnableGraph.fromGraph(
+    GraphDSL.create() { implicit builder => {
+      import GraphDSL.Implicits._
+
+      val merge = builder.add(Merge[Int](2))
+      val balance = builder.add(Balance[Int](2))
+
+      source1 ~> merge.in(0)
+      source2 ~> merge.in(1)
+      merge.out ~> balance.in
+
+      balance.out(0) ~> sinkSimple1
+      balance.out(1) ~> sinkSimple2
+
+      ClosedShape
+    }}
+  )
+  rgraph.run()
 }
