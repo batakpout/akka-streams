@@ -1,7 +1,7 @@
 package learning.primer
 
 import akka.{Done, NotUsed}
-import akka.actor.ActorSystem
+import akka.actor.{ActorSystem, Cancellable}
 import akka.stream.ActorMaterializer
 import akka.stream.scaladsl.{Flow, Keep, RunnableGraph, Sink, Source}
 
@@ -19,6 +19,7 @@ object First_Principles_1 extends App {
 
   val graph: RunnableGraph[NotUsed] = source.to(sink)
   val res: NotUsed = graph.run
+
 
 }
 
@@ -172,6 +173,8 @@ object First_Principles_8 extends App {
   //Flows, usually mapped to collection operators
   val mapFlow: Flow[Int, Int, NotUsed] = Flow[Int].map(_ + 2)
   val takeFlow: Flow[Int, Int, NotUsed] = Flow[Int].take(2)
+
+
   //same way drop, filer, NOT have flatMap
 
   Akka_Stream_Utils.execute(source.via(mapFlow).to(sink))
@@ -233,6 +236,38 @@ object First_Principles_9 extends App {
 
 }
 
+
+object TickSource extends App {
+
+  implicit val system = ActorSystem("FirstPrinciples-9")
+  implicit val materializer = ActorMaterializer()
+
+  import scala.concurrent.duration._
+
+  val source: Source[String, Cancellable] = Source.tick(1.second, 1.second, "tick").map(_ => "Hello Ticky")
+
+  source.runWith(Sink.foreach(println))
+}
+
+object SomeOtherExample extends App {
+
+
+  implicit val system = ActorSystem("FirstPrinciples-9")
+  implicit val materializer = ActorMaterializer()
+
+  import scala.concurrent.duration._
+  val sink: Sink[String, NotUsed] = Sink.cancelled[String]
+  // periodic tick out
+  val source =
+    Source.tick(1.second, 1.second, "tick").map(_ => "Hello Telnet" )
+
+  val serverFlow: Flow[String, String, NotUsed] = Flow.fromSinkAndSource(sink, source)
+
+  val f1 = Flow[String].map(_ + "a")
+  val x: NotUsed = f1.joinMat(serverFlow)(Keep.right).run()
+
+
+}
 
 
 
