@@ -3,7 +3,7 @@ package learning.primer.graphs
 import akka.{Done, NotUsed}
 import akka.actor.ActorSystem
 import akka.stream.scaladsl.Balance
-import akka.stream.{ActorMaterializer, ClosedShape}
+import akka.stream.{ActorMaterializer, ClosedShape, FanInShape2, UniformFanInShape, UniformFanOutShape}
 import akka.stream.scaladsl.{Broadcast, Flow, GraphDSL, Merge, RunnableGraph, Sink, Source, Zip}
 
 import scala.concurrent.Future
@@ -49,9 +49,9 @@ object Intro1 extends App {
         * Add the necessary components of the Graph
         * */
       //fan-out operator: single input, two outputs
-      val broadcast = builder.add(Broadcast[Int](2))
+      val broadcast: UniformFanOutShape[Int, Int] = builder.add(Broadcast[Int](2))
       //fan-in operator
-      val zip = builder.add(Zip[Int, Int])
+      val zip: FanInShape2[Int, Int, (Int, Int)] = builder.add(Zip[Int, Int])
 
       /**
         * tying up the components
@@ -160,8 +160,8 @@ object Intro4 extends App {
       import GraphDSL.Implicits._
 
       //declare components
-       val merge = builder.add(Merge[Int](2))
-       val balance = builder.add(Balance[Int](2))
+       val merge: UniformFanInShape[Int, Int] = builder.add(Merge[Int](2))
+       val balance: UniformFanOutShape[Int, Int] = builder.add(Balance[Int](2))
 
       /**
         *   fastSource ~> merge.in(0)
@@ -193,6 +193,19 @@ object Intro5 extends App {
   implicit val materializer = ActorMaterializer()
 
   import scala.concurrent.duration._
+
+
+  /**
+    * This example will guarantee that 20 (twice the numbers 1-10) will go into the sinks
+    * in a balanced fashion. That means at any time, the count difference between the sinks
+    * will not be bigger than 2. This is true for your output.
+    * As for the logs, each number must appear exactly twice;
+    * it might end up in the same sink or in different sinks
+    *
+    * Sink 2, count: 2, element: 4 <-- here
+    * Sink 2, count: 5, element: 4 <-- here, because it arrives much later, caught by the same sink 2
+
+    */
 
   val input: Source[Int, NotUsed] = Source(1 to 10)
   val fastSource = input.throttle(5, 1 second)

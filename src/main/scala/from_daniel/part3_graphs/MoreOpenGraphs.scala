@@ -1,9 +1,10 @@
 package from_daniel.part3_graphs
 
-import java.util.Date
+import akka.NotUsed
 
+import java.util.Date
 import akka.actor.ActorSystem
-import akka.stream.{ActorMaterializer, ClosedShape, FanOutShape2, UniformFanInShape}
+import akka.stream.{ActorMaterializer, ClosedShape, FanInShape2, FanOutShape2, FlowShape, Graph, UniformFanInShape, UniformFanOutShape}
 import akka.stream.scaladsl.{Broadcast, Flow, GraphDSL, RunnableGraph, Sink, Source, ZipWith}
 
 object MoreOpenGraphs extends App {
@@ -18,12 +19,12 @@ object MoreOpenGraphs extends App {
    */
 
   // step 1
-  val max3StaticGraph = GraphDSL.create() { implicit builder =>
+  val max3StaticGraph: Graph[UniformFanInShape[Int, Int], NotUsed] = GraphDSL.create() { implicit builder =>
     import GraphDSL.Implicits._
 
     // step 2 - define aux SHAPES
-    val max1 = builder.add(ZipWith[Int, Int, Int]((a, b) => Math.max(a, b)))
-    val max2 = builder.add(ZipWith[Int, Int, Int]((a, b) => Math.max(a, b)))
+    val max1: FanInShape2[Int, Int, Int] = builder.add(ZipWith[Int, Int, Int]((a, b) => Math.max(a, b)))
+    val max2: FanInShape2[Int, Int, Int] = builder.add(ZipWith[Int, Int, Int]((a, b) => Math.max(a, b)))
 
     // step 3
     max1.out ~> max2.in0
@@ -89,9 +90,9 @@ object MoreOpenGraphs extends App {
     import GraphDSL.Implicits._
 
     // step 2 - define SHAPES
-    val broadcast = builder.add(Broadcast[Transaction](2))
-    val suspiciousTxnFilter = builder.add(Flow[Transaction].filter(txn => txn.amount > 10000))
-    val txnIdExtractor = builder.add(Flow[Transaction].map[String](txn => txn.id))
+    val broadcast: UniformFanOutShape[Transaction, Transaction] = builder.add(Broadcast[Transaction](2))
+    val suspiciousTxnFilter: FlowShape[Transaction, Transaction] = builder.add(Flow[Transaction].filter(txn => txn.amount > 10000))
+    val txnIdExtractor: FlowShape[Transaction, String] = builder.add(Flow[Transaction].map[String](txn => txn.id))
 
     // step 3 - tie SHAPES
     broadcast.out(0) ~> suspiciousTxnFilter ~> txnIdExtractor
@@ -106,7 +107,7 @@ object MoreOpenGraphs extends App {
       import GraphDSL.Implicits._
 
       // step 2
-      val suspiciousTxnShape = builder.add(suspiciousTxnStaticGraph)
+      val suspiciousTxnShape: FanOutShape2[Transaction, Transaction, String] = builder.add(suspiciousTxnStaticGraph)
 
       // step 3
       transactionSource ~> suspiciousTxnShape.in
