@@ -1,1 +1,23 @@
+==What are streams====
 --> Streams are sequences of data, divided up into individual elements
+--> The size of the stream may not be known, or may be infinite
+--> Often streams are too large to fit in memory
+    Examples:
+    Twitter "firehose" of tweets
+    Live video streams
+    Data from a fitness tracker
+
+--> Use cases for Streams:
+    Consuming Live events (e.g tweets)
+    ETL systems (Extract, Transform, Load)
+    Streaming media(audio, video)
+
+====Reactive Streams===
+--> Reactive Steams is an initiative to provide a standard for asynchronous stream processing with
+    non-blocking back pressure. This encompasses efforts aimed at runtime environments (JVM & JavaScript)
+    as well as network protocols
+
+--> Why Reactive Streams?
+    How can we consume a stream of data in an asynchronous fashion?
+    How can we prevent an asynchronous stream from overwhelming a slow consumer?
+    How can we maintain ordering guarantees even while processing things asynchronously?
