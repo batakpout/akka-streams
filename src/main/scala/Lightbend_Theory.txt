@@ -1,0 +1,1 @@
+--> Streams are sequences of data, divided up into individual elements
