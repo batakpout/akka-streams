@@ -81,3 +81,34 @@
 
    case Study: AkkaAssembly- model a simple automobile factory [receive parts:- assemble cars,
     paint them and finally run them through an inspection.]
+
+=== Sources =====
+--> A Source is a stage with a single output.
+--> Think of it as an input to the stream
+--> Could be receiving data from a file, database, a REST API, collection etc.
+--> Amount of data in the source is not pre-determined. It may be infinite.
+--> Define as Source[+Out, +Mat]
+    Out defines the type of the elements that the Source Produces.
+    Mat defines the type of materialized value.
+--> Sources receive Demand from downstream.
+--> A Source can push data downstream, as long as there is demand.
+--> If there is no demand, then the source is forbidden from pushing data.
+--> The source has to deal with incomming data until demand resumes,
+    maybe slow down consumption of data: reject data from REST API, or buffer it, or drop it,
+    depends on type of Source we have.
+--> Sources respond to demand in an onPull handler.
+--> May also respond to onDownStreamFinish.
+--> In response to an onPull request, the Source may:
+    - push data downstream
+    - complete the stream with a success
+    - fail the stream with an error
+    - do nothing
+--> There logic is implemented for a variety of different sources.
+--> val source: Source[String, NotUsed] = Source.empty[String]
+    - empty stream of specified type, always completes the stream
+    - used mostly for testing, how system behaves when there is no data.
+    - if else expression, return empty from else to maintain type, cool!
+--> Source.single("Hello world"), push a single element whenever there is demand and then complete.
+--> Source.repeat("Hello world"), push a single same element infinitely whenever there is demand.
+--> Source.tick(initialDelay, interval, tick):Same element is infinitely pushed whenever there is demand
+    if there is no demand, (i.e backpressure), no tick will be pushed, that tick will be lost.
