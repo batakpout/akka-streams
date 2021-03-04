@@ -21,3 +21,63 @@
     How can we consume a stream of data in an asynchronous fashion?
     How can we prevent an asynchronous stream from overwhelming a slow consumer?
     How can we maintain ordering guarantees even while processing things asynchronously?
+
+-> Reactive Stream Components:
+   Publisher: Publishes data into stream
+   Subscriber: Consumers data from stream
+   Processor: Acts as both a publisher and a subscriber, obeying the contract for each
+   Subscription: Connects a Subscriber to a Publisher in order to initiate the message flow
+
+   -----BackPressure-------
+   Backpressure implemented using a pull/push mechanism, Subscribers signal demand. Demand is sent
+   upstream via subscription.
+   Publisher is forbidden from send the data downstream until the demand has been signalled.
+   Publishers receive demand and push data (if available) downstream.
+   Publisher are forbidden from pushing more than the demand.
+
+  -----Akka Streams relation to Reactive Streams-------
+  Akka Streams is build on the concepts and interfaces of Reactive Streams but provides an API
+  that is geared towards the end-users.
+  Exposes some points for interoperability between Reactive Streams and Akka Streams.
+
+  -----Akka Streams relationship to akka Actors---------
+  Actors consume stream of data in the form of messages
+  It can be tedious(dull/boring) and error prone to implement streams with backpressure between actor manually.
+  Akka Streams provides a higher level API for stream processing, backed by akka actors
+  Akka Streams provide statically typed guarantees that prevent wiring errors
+
+--> What is an Akka Stream?
+    Data flows through a chain of processing stages.
+    Stages consist of zero or more input and zero or more output.
+    Stages must have atleast one input or output.
+    By default, stages are fused together to run synchronously inside a single actor, but can be made
+    to run asynchronously in separate actors.
+
+    Sources - The "source" of the data in the stream.
+    Sinks - The "destinations" for the data in the stream.
+    Flows - Transformations to the data in the stream.
+    Runnable Graphs - A stream where all inputs and outputs are connected.
+
+    Each stage in the stream can be executed synchronously or asynchronously.
+    In most cases, element order is preserved.
+    Backpressure is propagated from downstream stages to upstream.
+    Linear stream are often sufficient for most use cases.
+
+   Graph introduce Junctions - Branch points in the stream(fan-out, fan-in).
+   Graphs allow us to build complex flow of data with multiple inputs and outputs.
+
+   Sources/Flows/Sinks/Junctions are immutable, re-useable templates.
+   They contain instruction on how to produce/transform/consume data.
+   By themselves they do nothing.
+   In order to start the flow of data, the graph must first be materialized.
+
+   implicit val materializer = ActorMaterializer()
+   Materialization is the act of allocating resources to the stream.
+   occurs when all the stages in the stream are connected and the steam is run.
+   Running the stream results in Materialized values being produced.
+   Each stage is capable of producing a single materialized value.
+   Materialized Values are separate from the elements being produced/transformed/consumed by the stages.
+   An Implicit materialized is required.
+
+   case Study: AkkaAssembly- model a simple automobile factory [receive parts:- assemble cars,
+    paint them and finally run them through an inspection.]
