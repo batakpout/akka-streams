@@ -1,12 +1,12 @@
 package learning.primer
 
-import akka.actor.{ActorRef, ActorSystem, Cancellable}
+import akka.actor.{Actor, ActorLogging, ActorRef, ActorSystem, Cancellable, Props}
 import akka.stream.{ActorMaterializer, IOResult, OverflowStrategy}
 import akka.stream.scaladsl.{FileIO, Flow, Keep, RunnableGraph, Sink, Source, StreamConverters, Tcp}
 import akka.util.ByteString
 import akka.{Done, NotUsed}
 
-import java.io.FileInputStream
+import java.io.{FileInputStream, FileOutputStream}
 import java.nio.file.Paths
 import scala.collection.immutable
 import scala.concurrent.Future
@@ -461,6 +461,72 @@ object TickSource extends App {
 }
 
 
+
+
+object ColorIterator extends App {
+
+  object Color {
+    def apply(hexString: String): Color = {
+      new Color(
+        Integer.parseInt(hexString.substring(0, 2), 16),
+        Integer.parseInt(hexString.substring(2, 4), 16),
+        Integer.parseInt(hexString.substring(4, 6), 16)
+      )
+    }
+  }
+  case class Color(red: Int, green: Int, blue: Int) {
+    require(red >= 0 && red <= 255)
+    require(green >= 0 && green <= 255)
+    require(blue >= 0 && blue <= 255)
+  }
+
+  implicit val system = ActorSystem("FirstPrinciples-9")
+  implicit val materializer = ActorMaterializer()
+
+  val colorSet = Set(
+    Color("FFFFFF"),
+    Color("000000"),
+    Color("FF00FF")
+  )
+  val colors: Source[Color, NotUsed] = Source.cycle(() => colorSet.iterator)
+
+
+
+  val sink = Sink.foreach[Color](println)
+
+  val g = colors.to(sink)
+  Akka_Stream_Utils.execute(g)
+
+}
+
+object ShipmentExample extends App {
+
+  implicit val system = ActorSystem("FirstPrinciples-9")
+  implicit val materializer = ActorMaterializer()
+
+  import java.util.UUID
+
+  case class SerialNumber(value: UUID = UUID.randomUUID())
+  case class Engine(serialNumber: SerialNumber = SerialNumber())
+  case class Shipment(engines: Seq[Engine])
+
+  val shipmentSize = 2
+
+  val shipments: Source[Shipment, NotUsed] = {
+    Source.fromIterator (() => Iterator.continually {
+      Shipment(
+        Seq.fill(shipmentSize)(Engine())
+      )
+    })
+  }
+
+  val sink = Sink.foreach[Shipment](println)
+
+  val g = shipments.to(sink)
+  Akka_Stream_Utils.execute(g)
+}
+
+
 object FlowFromSinkAndSource extends App {
 
 
@@ -482,6 +548,78 @@ object FlowFromSinkAndSource extends App {
 
 }
 
+object SinkSeq extends App {
+
+  /**
+    * Sink.seq[Int]
+    * Pulls all elements in the stream and populates a sequence: Vector()
+    */
+  implicit val system = ActorSystem("FirstPrinciples-9")
+  implicit val materializer = ActorMaterializer()
+
+  val source = Source( 1 to 10)
+  val sink: Sink[Int, Future[immutable.Seq[Int]]] = Sink.seq[Int]
+
+  val res: Future[immutable.Seq[Int]] = source.runWith(sink)
+
+  import system.dispatcher
+
+  res.map(x => println(s"Sequesnce is: ${x}"))
+
+}
+
+
+object SinkActorRef extends App {
+
+  /**
+    * Pulls all elements in the stream and sends them to a provided ActorRef.
+    * when the stream completes, it will send the onCompleteMessage to the actor.
+    * No Backpressure mechanism is provided. Beware of mailbox overflow.
+    * actorRefAck: Sends the elements of the stream to the given ActorRef that sends back back-pressure signal
+    */
+  implicit val system = ActorSystem("FirstPrinciples-9")
+  implicit val materializer = ActorMaterializer()
+
+  val source = Source( 1 to 10)
+
+  case object PrintSum
+  val sumActor: ActorRef = system.actorOf(Props(
+    new Actor with ActorLogging {
+      private var sum = 0
+
+      override def receive: Receive = {
+        case value: Int => sum += value
+        case PrintSum => log.info(s"sum is: $sum")
+      }
+    }
+  ))
+
+  val computeSum: Sink[Int, NotUsed] = Sink.actorRef[Int](sumActor, onCompleteMessage = PrintSum)
+
+
+}
+
+object SinksToFiles extends App {
+
+  implicit val system = ActorSystem("FirstPrinciples-9")
+  implicit val materializer = ActorMaterializer()
+
+  val writeToFile: Sink[ByteString, Future[IOResult]] =
+    FileIO.toPath(Paths.get("myfile.txt"))
+
+  //FileIO.toPath : pulls ByteStrings from upstream and write them to a file.
+}
+
+object SinkToJavaStream extends App {
+
+  /**
+    * Pulls data from upstream and writes them to the OuputStream.
+    */
+  val writeToJavaStream: Sink[ByteString, Future[IOResult]] =
+    StreamConverters.fromOutputStream(() =>
+        new FileOutputStream("file.txt")
+    )
+}
 
 
 

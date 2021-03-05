@@ -112,3 +112,15 @@
 --> Source.repeat("Hello world"), push a single same element infinitely whenever there is demand.
 --> Source.tick(initialDelay, interval, tick):Same element is infinitely pushed whenever there is demand
     if there is no demand, (i.e backpressure), no tick will be pushed, that tick will be lost. etc
+
+===Sinks=====
+--> A Sink is a stage with single input.
+--> It's output of the stream, could be writing to a file, database, REST API, collection etc.
+--> Sink create backpressure by controlling Demand. A sink can only send Demand when it is ready to receive
+    more data, If a sink can not keep up with incomming data, demand will stop and the data flow will cease.
+--> Sink[-In, +Mat]: In is the type of element Sink Consumes, Mat is type of the materialized value.
+--> Sinks respond to new data in an onPush handler, in response to onPush request, the sink may:
+    request new data from upstream using pull, grab any data that has already been pushed, cancel the
+    stream causing it to termination. This logic is implemented for variety of different sinks.
+--> Sink[Any, Future[Done]] = Sink.ignore: pulls all elements in the stream and discards them without processing.
+--> Sink.head[Int]/last:  pulls until it finding the first or last element in stream and materializes it.
