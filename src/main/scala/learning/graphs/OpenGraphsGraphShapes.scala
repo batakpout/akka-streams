@@ -1,4 +1,4 @@
-package learning.primer.graphs
+package learning.graphs
 
 import akka.{Done, NotUsed}
 import akka.actor.ActorSystem

@@ -1,9 +1,9 @@
 package learning.primer
 
-import akka.{Done, NotUsed}
 import akka.actor.ActorSystem
-import akka.stream.{ActorMaterializer, OverflowStrategy}
 import akka.stream.scaladsl.{Flow, Sink, Source}
+import akka.stream.{ActorMaterializer, OverflowStrategy}
+import akka.{Done, NotUsed}
 
 import scala.concurrent.Future
 
