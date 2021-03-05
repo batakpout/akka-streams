@@ -1,12 +1,16 @@
 package learning.primer
 
-import akka.actor.{ActorSystem, Cancellable}
-import akka.stream.ActorMaterializer
-import akka.stream.scaladsl.{Flow, Keep, RunnableGraph, Sink, Source}
+import akka.actor.{ActorRef, ActorSystem, Cancellable}
+import akka.stream.{ActorMaterializer, IOResult, OverflowStrategy}
+import akka.stream.scaladsl.{FileIO, Flow, Keep, RunnableGraph, Sink, Source, StreamConverters, Tcp}
+import akka.util.ByteString
 import akka.{Done, NotUsed}
 
+import java.io.FileInputStream
+import java.nio.file.Paths
 import scala.collection.immutable
 import scala.concurrent.Future
+import scala.concurrent.duration.DurationInt
 
 object First_Principles_1 extends App {
 
@@ -313,11 +317,11 @@ object First_Principles_13 extends App {
 
 
   /**
-    * Similar to fromIterator, but the iterator in this case is infinitely repeated.
+    * Similar to Iterator.from, but the iterator in this case is infinitely repeated.
     * When hasNext returns false, the iterator is recreated and consumed again.
     */
   val source: Source[Int, NotUsed] = Source.cycle(
-    () => Iterator.range(1, 100)
+    () => Iterator.range(1, 5)
   )
 
   val sink: Sink[Int, Future[Done]] = Sink.foreach[Int](println)
@@ -365,6 +369,84 @@ object First_Principles_14 extends App {
 
 }
 
+object SourceFromActors extends App {
+
+  /**
+    * Creates a source that is materialized as an ActorRef.
+    * Messages send to the ActorRef will be pushed to the stream or buffered until there is demand.
+    * Completes by sending the actor a akka.actor.Status.Success or akka.actor.PoisonPill
+    */
+  implicit val system = ActorSystem("FirstPrinciples-9")
+  implicit val materializer = ActorMaterializer()
+
+  val actorPoweredSource: Source[Int, ActorRef] = Source.actorRef[Int](bufferSize = 10, overflowStrategy = OverflowStrategy.dropHead)
+  val materializedActorRef: ActorRef = actorPoweredSource.to(Sink.foreach[Int](number => println(s"Actor powered flow got number: $number"))).run()
+  materializedActorRef ! 10
+  // terminating the stream
+  materializedActorRef ! akka.actor.Status.Success("complete")
+  materializedActorRef ! 10
+}
+
+object SourceFromFiles extends App {
+
+  implicit val system = ActorSystem("FirstPrinciples-9")
+  implicit val materializer = ActorMaterializer()
+
+  /**
+    * Creates s Source of ByteString from a file using a thread-pool backed dispatcher dedicated for FileIO
+    * Pulls data from the file and pushes it downstream whenever there is demand.
+    * Completes when the end of file is reached
+    * Use the Framing API and a decoder to parse ByteStrings into lines of text
+    */
+
+  val byteSource: Source[ByteString, Future[IOResult]] = FileIO.fromPath(
+    Paths.get("src/main/resources/logfile.txt"),
+    chunkSize = 1024
+  )
+}
+
+object SourceFromTCPConnections extends App {
+
+  implicit val system = ActorSystem("FirstPrinciples-9")
+  implicit val materializer = ActorMaterializer()
+
+ /**
+   * Tcp().bind()
+   * Creates a Source from TCP Connection
+   * Each time a client connects, a new Connection will be emitted to the stream.
+   * Connection can be processed by attaching a Flow to the Connection.
+
+  */
+  val connections: Source[Tcp.IncomingConnection, Future[Tcp.ServerBinding]] = Tcp().bind("127.0.0.1", 8888)
+}
+
+object SourceFromJavaStreams extends App {
+
+  implicit val system = ActorSystem("FirstPrinciples-9")
+  implicit val materializer = ActorMaterializer()
+
+ val source: Source[ByteString, Future[IOResult]] = StreamConverters.fromInputStream { () =>
+   new FileInputStream("myfile.txt")
+ }
+}
+
+object FlowFromSinkAndShapeTest extends App {
+
+  implicit val system = ActorSystem("FlowFromSinkAndShapeTest")
+  implicit val materializer = ActorMaterializer()
+
+  // close in immediately
+  val sink = Sink.cancelled[ByteString]
+  // periodic tick out
+  val source =
+    Source.tick(1.second, 1.second, "tick").map(_ => ByteString("Hello Telnet" + "\n"))
+
+  val serverFlow: Flow[ByteString, ByteString, NotUsed] = Flow.fromSinkAndSource(sink, source)
+
+  val r: Future[Done] = Tcp().bind("127.0.0.1", 9999).runForeach { incomingConnection: Tcp.IncomingConnection =>
+    incomingConnection.handleWith(serverFlow)
+  }
+}
 
 object TickSource extends App {
 
@@ -378,7 +460,8 @@ object TickSource extends App {
   source.runWith(Sink.foreach(println))
 }
 
-object SomeOtherExample extends App {
+
+object FlowFromSinkAndSource extends App {
 
 
   implicit val system = ActorSystem("FirstPrinciples-9")

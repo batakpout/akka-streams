@@ -111,4 +111,4 @@
 --> Source.single("Hello world"), push a single element whenever there is demand and then complete.
 --> Source.repeat("Hello world"), push a single same element infinitely whenever there is demand.
 --> Source.tick(initialDelay, interval, tick):Same element is infinitely pushed whenever there is demand
-    if there is no demand, (i.e backpressure), no tick will be pushed, that tick will be lost.
+    if there is no demand, (i.e backpressure), no tick will be pushed, that tick will be lost. etc

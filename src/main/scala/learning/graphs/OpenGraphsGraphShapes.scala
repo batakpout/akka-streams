@@ -134,6 +134,17 @@ object OpenGraphsGraphShapes_4 extends App {
     }
   )
 
+  val d: Graph[FlowShape[Int, Int], NotUsed] = GraphDSL.create() { implicit builder =>
+      import GraphDSL.Implicits._
+
+      val incrementerShape: FlowShape[Int, Int] = builder.add(incrementer)
+      val multiplierShape: FlowShape[Int, Int] = builder.add(multiplier)
+
+      incrementerShape ~> multiplierShape
+      FlowShape(incrementerShape.in, multiplierShape.out)
+    }
+
+
   source.via(flowGraph).runWith(sink)
 
 }
