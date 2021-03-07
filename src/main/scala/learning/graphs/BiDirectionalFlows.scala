@@ -9,11 +9,11 @@ import akka.stream.scaladsl.{Flow, GraphDSL, RunnableGraph, Sink, Source}
   * Example: Cryptography, Encoding/Decoding, Serializing/DeSerializing
   * A bidirectional flow of elements that consequently has two inputs and two outputs, arranged like this:
   *
-  * +------+
-  * In1 ~>  |       |~> Out1
-  * |  bidi |
-  * Out2<~|       |<~ In2
-  * +------+
+  *           +------+
+  *   In1 ~>  |       |~> Out1
+  *           |  bidi |
+  *     Out2<~|       |<~ In2
+  *            +------+
   */
 
 object BiDirectionalFlows_1 extends App {
@@ -73,7 +73,8 @@ object BiDirectionalFlows_1 extends App {
 
       //revers the way these components are tied in
       unencryptedSourceShape ~> bidi.in1 ; bidi.out1 ~> encryptedSinkShape
-      bidi.in2 <~ encryptedSourceShape ; decryptedSinkShape <~ bidi.out2
+      bidi.in2 <~ encryptedSourceShape ; decryptedSinkShape <~ bidi.
+
 
       ClosedShape
     }
