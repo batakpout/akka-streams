@@ -73,8 +73,7 @@ object BiDirectionalFlows_1 extends App {
 
       //revers the way these components are tied in
       unencryptedSourceShape ~> bidi.in1 ; bidi.out1 ~> encryptedSinkShape
-      bidi.in2 <~ encryptedSourceShape ; decryptedSinkShape <~ bidi.
-
+      bidi.in2 <~ encryptedSourceShape ; decryptedSinkShape <~ bidi.out2
 
       ClosedShape
     }
