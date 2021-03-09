@@ -596,7 +596,7 @@ object SinkActorRef extends App {
 
   val computeSum: Sink[Int, NotUsed] = Sink.actorRef[Int](sumActor, onCompleteMessage = PrintSum)
 
-
+   source.runWith(computeSum)
 }
 
 object SinksToFiles extends App {

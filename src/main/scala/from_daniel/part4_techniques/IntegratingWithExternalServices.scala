@@ -1,7 +1,8 @@
 package from_daniel.part4_techniques
 
-import java.util.Date
+import akka.NotUsed
 
+import java.util.Date
 import akka.actor.{Actor, ActorLogging, ActorSystem, Props}
 import akka.stream.ActorMaterializer
 import akka.stream.scaladsl.{Sink, Source}
@@ -51,8 +52,8 @@ object IntegratingWithExternalServices extends App {
     }
   }
 
-  val infraEvents = eventSource.filter(_.application == "AkkaInfra")
-  val pagedEngineerEmails = infraEvents.mapAsync(parallelism = 1)(event => PagerService.processEvent(event))
+  val infraEvents: Source[PagerEvent, NotUsed] = eventSource.filter(_.application == "AkkaInfra")
+  val pagedEngineerEmails: Source[String, NotUsed] = infraEvents.mapAsync(parallelism = 1)(event => PagerService.processEvent(event))
   // guarantees the relative order of elements
   val pagedEmailsSink = Sink.foreach[String](email => println(s"Successfully sent notification to $email"))
   // pagedEngineerEmails.to(pagedEmailsSink).run()
