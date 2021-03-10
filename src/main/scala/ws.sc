@@ -1,7 +1,6 @@
-val hexString = "FFFFFF"
-val x= hexString.substring(0, 2)
-Integer.parseInt(x, 16)
+import akka.NotUsed
+import akka.stream.scaladsl.Source
 
+val source: Source[Int, NotUsed] = Source(1 to 10)
 
-Seq.fill(12)("Hello")
 
