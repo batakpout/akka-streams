@@ -93,7 +93,7 @@
 --> Sources receive Demand from downstream.
 --> A Source can push data downstream, as long as there is demand.
 --> If there is no demand, then the source is forbidden from pushing data.
---> The source has to deal with incomming data until demand resumes,
+--> The source has to deal with in-comming data until demand resumes,
     maybe slow down consumption of data: reject data from REST API, or buffer it, or drop it,
     depends on type of Source we have.
 --> Sources respond to demand in an onPull handler.
