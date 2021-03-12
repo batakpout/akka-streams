@@ -99,7 +99,7 @@ object FaultTolerance_1 extends App {
       must be explicitly documented to support them, by default, they just fail.
     */
 
-  val numbers = Source(1 to 20).map(n => if(n == 13) throw new RuntimeException("bad luck") else n).log("supervision")
+  val numbers = Source(1 to 20).map(n => if(n == 13) throw new RuntimeException("bad luck") else n).log("supervision") // just ignore number 13
   val supervisedNumbers = numbers.withAttributes(
     ActorAttributes.supervisionStrategy{
       //Resume- skips faulty element and let stream go through, stop: stop stream, restart: same as resume but clear internal state of component (e.g fold: clear states)
@@ -124,13 +124,11 @@ object Question_Example extends App {
   implicit val sys = ActorSystem()
   implicit val mat = ActorMaterializer()
 
-  var explosionCounter = 0
 
   val source = Source(1 to 10).flatMapConcat(n =>
-    RestartSource.onFailuresWithBackoff(1.second, 10.seconds, 0.1)(() => {
-      val randomNumber = new Random().nextInt(20)
+    RestartSource.onFailuresWithBackoff(1.second, 10.seconds, 0.1, 2)(() => {
+      val randomNumber = new Random().nextInt(5)
        Source.single(n).map(theActualNumber => {
-        explosionCounter += 1
         if (theActualNumber == randomNumber) throw new RuntimeException else theActualNumber
       })
     }

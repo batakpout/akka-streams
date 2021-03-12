@@ -1,0 +1,2 @@
+https://developer.lightbend.com/docs/telemetry/current/instrumentations/akka-streams/akka-stream-use-cases.html (for measuring stream performance)
+https://github.com/ruippeixotog/akka-stream-mon (for monitoring stream performances)
