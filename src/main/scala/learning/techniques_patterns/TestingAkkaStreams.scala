@@ -107,8 +107,8 @@ class TestingAkkaStreamsSpec extends TestKit(ActorSystem("TestingAkkaStreams"))
 
     "integrate flows with a test source AND a test sink" in {
       val flowUnderTest = Flow[Int].map(_ * 2)
-      val testSource = TestSource.probe[Int]
-      val testSink = TestSink.probe[Int]
+      val testSource: Source[Int, TestPublisher.Probe[Int]] = TestSource.probe[Int]
+      val testSink: Sink[Int, TestSubscriber.Probe[Int]] = TestSink.probe[Int]
 
       val (testPublisher, testSubscriber) = testSource.via(flowUnderTest).toMat(testSink)(Keep.both).run()
 
