@@ -20,7 +20,8 @@ object AdvancedBackPressures_1 extends App {
   // control backpressure
   val controlledFlow = Flow[Int].map(_ * 2).buffer(10, OverflowStrategy.dropHead)
 
-  case class PagerEvent(description: String, date: Date, nInstance:Int = 1)
+  case class PagerEvent(description: String, date: Date, nInstance: Int = 1)
+
   case class Notification(email: String, pagerEvent: PagerEvent)
 
   val events = List(
@@ -34,7 +35,7 @@ object AdvancedBackPressures_1 extends App {
   val oncallEngineer = "daniel@rockthejvm.com" // a fast service for fetching oncall emails
 
   def sendEmail(notification: Notification) =
-    println(s"Dear ${notification.email}, you have an event: ${notification.pagerEvent}")  // actually send an email
+    println(s"Dear ${notification.email}, you have an event: ${notification.pagerEvent}") // actually send an email
 
   val notificationSink = Flow[PagerEvent].map(event => Notification(oncallEngineer, event))
     .to(Sink.foreach[Notification](sendEmail))
@@ -45,13 +46,13 @@ object AdvancedBackPressures_1 extends App {
   /**
     * Un-backpressureable source
     * Let's say this sendEmailSlow service is very very slow, in that case the notificationSink will normally try to
-      backpressure the source, this might cause issue. 1. on the practical side, engineers may not get paged on time,
-      2.) for akka stream considerations, this Source may not be able to backpressure, especially if its timer based, so
-       timer based Sources don't respond to backpressure.
+    * backpressure the source, this might cause issue. 1. on the practical side, engineers may not get paged on time,
+    * 2.) for akka stream considerations, this Source may not be able to backpressure, especially if its timer based, so
+    * timer based Sources don't respond to backpressure.
     * So if the Source cannot be back-pressured, for some reason, the solution to that, is to somehow aggregate the
-      in-comming events and create a one single notification, when we receive demand from Sink. Instead of buffering the
-      events on our flow, we can create a single notification for multiple events. So we will aggregate the events, and
-      will create a single notification out of them.
+    * in-comming events and create a one single notification, when we receive demand from Sink. Instead of buffering the
+    * events on our flow, we can create a single notification for multiple events. So we will aggregate the events, and
+    * will create a single notification out of them.
     */
   def sendEmailSlow(notification: Notification) = {
     Thread.sleep(1000)
@@ -66,8 +67,35 @@ object AdvancedBackPressures_1 extends App {
   private val aggregateNotificationFlow = Flow[PagerEvent].conflate((event1, event2) => {
     val nInstances = event1.nInstance + event2.nInstance
     PagerEvent(s"You have $nInstances events that requires your attention", new Date, nInstances)
-  })//.map(resultingEvent => Notification(oncallEngineer, resultingEvent))
+  }).map(resultingEvent => Notification(oncallEngineer, resultingEvent))
 
-   eventSource.via(aggregateNotificationFlow).async.to(Sink.foreach[PagerEvent](println)).run()
-  // alternative to backpressure
+  //eventSource.via(aggregateNotificationFlow).async.to(Sink.foreach[Notification](sendEmailSlow)).run()
+  // conflate is an alternative to backpressure
+
+  /**
+    * Slow producer, fast consumer: extrapolate/expand
+    * Extrapolate:
+    * Allows a faster downstream to progress independent of a slower upstream.
+    * This is achieved by introducing "extrapolated" elements - based on those from upstream - whenever downstream signals demand.
+    */
+
+  import scala.concurrent.duration._
+
+  val slowSource = Source(Stream.from(1)).throttle(1, 1 second)
+  val hungrySink = Sink.foreach[Int](println)
+
+  val extrapolator = Flow[Int].extrapolate(elem => Iterator.from(elem))
+  //or
+  val repeater = Flow[Int].extrapolate(elem => Iterator.continually(elem))
+  //slowSource.via(extrapolator).to(hungrySink).run()
+  //slowSource.via(repeater).to(hungrySink).run()
+
+  /**
+    * Extrapolator creates Iterator only when there is unmet demand,
+    * Expander creates this Iterator at all times.
+    */
+  val expander = Flow[Int].expand(elem => Iterator.from(elem))
+  slowSource.via(expander).to(hungrySink).run()
+
+
 }
