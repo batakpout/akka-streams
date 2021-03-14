@@ -124,3 +124,25 @@
     stream causing it to termination. This logic is implemented for variety of different sinks.
 --> Sink[Any, Future[Done]] = Sink.ignore: pulls all elements in the stream and discards them without processing.
 --> Sink.head[Int]/last:  pulls until it finding the first or last element in stream and materializes it.
+
+====Flow=====
+--> A flow is a graph with single input and single output.
+--> A flows acts as both a Source and Sink, obeying the rules for both.
+--> A flow receives demand from downstream and propogates it upstream.
+--> Flows can propogate backpressure upstream by reducing or stopping demand.
+--> Alternatively Flows can drop data, buffer data etc.
+--> A Flow is both a consumer and a producer. It uses the message flow of both Source and Sink.
+--> It may respond to both onPush and onPull. It responds with the ame messages as Source and Sink.
+--> val flow: Flow[Int, Int, NotUsed] = Flow[Int].buffer(100, OverflowStrategy.backpressure)
+    buffer buffers incomming message in order to smooth out inconsistencies in flow rates.
+    
+--> Flows for slow consumers/ produers:
+    - expand: extrapolates additional values from the incomming elements to fill gaps when the 
+      consumer is faster than the producer.
+    - batch: group elements in a batch to be consumed downstream if the producer is faster than the consumer.
+    - conflate: create a summary of multiple elements to be consumed downstream if the producer is faster than the consumer.
+    
+    
+    
+    
+

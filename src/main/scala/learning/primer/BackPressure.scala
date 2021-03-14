@@ -114,12 +114,12 @@ object BackPressure_4 extends App {
   }
   val simpleFlow: Flow[Int, Int, NotUsed] = Flow[Int].map[Int] { x =>
     println(s"Incoming: $x")
-    x + 1
+    x
   }
   /**
     * Source Buffer size = 16 + 6 (Flow Buffer Size) = 22
     */
-  val bufferedFlow = simpleFlow.buffer(size = 6, overflowStrategy = OverflowStrategy.dropTail)
+  val bufferedFlow = simpleFlow.buffer(size = 6, overflowStrategy = OverflowStrategy.dropNew)
 
   fastSource.async.
     via(bufferedFlow).async.

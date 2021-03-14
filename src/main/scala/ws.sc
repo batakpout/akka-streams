@@ -1,6 +1,10 @@
-import akka.NotUsed
-import akka.stream.scaladsl.Source
+val l = List(1,2,3,4,5)
 
-val source: Source[Int, NotUsed] = Source(1 to 10)
+val r: List[Int] = l.scanLeft(0)(_ + _)
+
+val l = List(1,2,3,4,5)
+val x: List[Int] = l.collect({
+  case e:Int if e % 2 ==0 => e
+})
 
 
