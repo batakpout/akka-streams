@@ -82,6 +82,22 @@ class TestingAkkaStreamsSpec extends TestKit(ActorSystem("TestingAkkaStreams"))
         expectComplete() // after this stream should finish
     }
 
+    "integrate with stream TestKit Sink with expectN" in {
+      val sourceUnderTest = Source(1 to 4).map(_ * 2)
+
+      val testSink: Sink[Int, TestSubscriber.Probe[Int]] = TestSink.probe[Int]
+      val matTestValue: TestSubscriber.Probe[Int] = sourceUnderTest.runWith(testSink)
+
+      //      matTestValue.
+      //        request(2).
+      //        expectNext(2, 4)
+      //expectComplete(), it won't be fulfilled, as stream is not finished yet
+
+      matTestValue.request(40)
+      matTestValue.expectNextN(4)
+      matTestValue.expectComplete() // after this stream should finish
+    }
+
     "integrate with stream TestKit Source" in {
       val sinkUnderTest: Sink[Any, Future[Done]] = Sink.foreach {
         case 13 => throw new RuntimeException
