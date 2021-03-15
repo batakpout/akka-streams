@@ -84,7 +84,7 @@ object Flows_4 extends App {
   /**
     * Combines the in-comming elements with elements from another Source.
     * Result is emitted as tuple of both values.
-    * When source terminates the internal Source terminates too.
+    * When flow terminates the internal Source terminates too.
     */
   val flow: Flow[String, (String, Int), NotUsed] = Flow[String].zip({
     Source.fromIterator(() => Iterator.from(0))
@@ -132,22 +132,7 @@ object Flows_6 extends App {
     implicit val system = ActorSystem("DSH-1")
     implicit val materializer = ActorMaterializer()
 
-    val source = Source(1 to 10)
-    val sink = Sink.foreach[Int](println)
-
-    /**
-      * mapConcat:
-      * transforms data into a collection tht is "flattened" into the stream.
-      * Similar to flatMap on a collection
-      */
-
-    //val flow: Flow[String, Vector[String], NotUsed] = Flow[String].map(str => str.split("\\s").toVector)
-
-    val stringSource = Source(1 to 10)
+    val s = Source(1 to 10)
     val flow: Flow[Int, Int, NotUsed] = Flow[Int].map(_ * 2).log("MyFlowTag")
-    stringSource.via(flow).to(Sink.foreach[Int](println)).run()
-
-
-
-
+    s.via(flow).to(Sink.foreach[Int](println)).run()
 }
