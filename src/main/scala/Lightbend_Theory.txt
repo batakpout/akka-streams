@@ -132,7 +132,7 @@
 --> Flows can propogate backpressure upstream by reducing or stopping demand.
 --> Alternatively Flows can drop data, buffer data etc.
 --> A Flow is both a consumer and a producer. It uses the message flow of both Source and Sink.
---> It may respond to both onPush and onPull. It responds with the ame messages as Source and Sink.
+--> It may respond to both onPush and onPull. It responds with the same messages as Source and Sink.
 --> val flow: Flow[Int, Int, NotUsed] = Flow[Int].buffer(100, OverflowStrategy.backpressure)
     buffer buffers incomming message in order to smooth out inconsistencies in flow rates.
     
@@ -141,6 +141,10 @@
       consumer is faster than the producer.
     - batch: group elements in a batch to be consumed downstream if the producer is faster than the consumer.
     - conflate: create a summary of multiple elements to be consumed downstream if the producer is faster than the consumer.
+
+=====Runnable Graphs=====================
+--> Connect all inputs and outputs in Source/Sink/Flows, to create a Runnable Graph.
+--> Once a Runnable Graph is created, the data can start flowing.
     
     
     

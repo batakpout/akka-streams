@@ -1,10 +1,12 @@
-val l = List(1,2,3,4,5)
+case class UP(model: String)
 
-val r: List[Int] = l.scanLeft(0)(_ + _)
+case class Mod(mod: Option[UP])
 
-val l = List(1,2,3,4,5)
-val x: List[Int] = l.collect({
-  case e:Int if e % 2 ==0 => e
-})
+val l: List[Mod] = List(Mod(Some(UP(""))), Mod(None), Mod(None))
+
+val x: List[Option[UP]] = l.map(_.mod)
+
+x.count(_.isEmpty)
+x.count(_.nonEmpty)
 
 

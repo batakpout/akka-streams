@@ -101,6 +101,8 @@ object FaultTolerance_1 extends App {
 
   val numbers = Source(1 to 20).map(n => if(n == 13) throw new RuntimeException("bad luck") else n).log("supervision") // just ignore number 13
   val supervisedNumbers = numbers.withAttributes(
+    //ActorAttributes.dispatcher("mydis")
+    //Attributes allows to customize: Dispatcher, Supervision, Log Levels, Buffersizes, used to customize supervision per stage.
     ActorAttributes.supervisionStrategy{
       //Resume- skips faulty element and let stream go through, stop: stop stream, restart: same as resume but clear internal state of component (e.g fold: clear states)
       case _:RuntimeException => Resume
