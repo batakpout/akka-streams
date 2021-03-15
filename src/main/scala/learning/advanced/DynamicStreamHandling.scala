@@ -54,6 +54,7 @@ object DynamicStreamHandling_1 extends App {
 
   system.scheduler.scheduleOnce(5.seconds) {
     //this will shut down both the streams
+    //sharedKillSwitch.shutdown()
     sharedKillSwitch.abort(new Exception(" I kill I kill I got I got")) // abort with a throwable
   }
 }
