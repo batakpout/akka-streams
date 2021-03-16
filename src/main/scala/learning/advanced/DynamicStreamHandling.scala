@@ -70,7 +70,7 @@ object DynamicStreamHandling_2 extends App {
   val dynamicMerge: Source[Int, Sink[Int, NotUsed]] = MergeHub.source[Int]
 
   //materialized sink will have same sink always
-  val materializedSink: Sink[Int, NotUsed] = dynamicMerge.to(Sink.foreach[Int](println)).run()
+  val materializedSink = dynamicMerge.to(Sink.foreach[Int](println))//.run()
 
   //====little confusion======
 //  val sink: Sink[Int, Future[Done]] = Sink.foreach[Int](println)
@@ -87,16 +87,17 @@ object DynamicStreamHandling_2 extends App {
   // Advantage of this technique is that it can be programmed to run while the stream is active unlike e.g the GraphDSL
 
  val dynamicBroadcast: Sink[Int, Source[Int, NotUsed]] = BroadcastHub.sink[Int]
- val s = Source(1 to 3)
-  val rs = s.to(dynamicBroadcast)
-  //since its a sink we need to plug it to the same producer.
+ val s: Source[Int, NotUsed] = Source(1 to 3).throttle(1, 1.second)
 
-  // materializedSource will have same source always
-  val materializedSource: Source[Int, NotUsed] = Source.empty.runWith(dynamicBroadcast).log("xxx")
+  val r1: Source[Int, NotUsed] = s.toMat(dynamicBroadcast)(Keep.right).run()
 
-   //val f: Future[Int] = materializedSource.toMat(Sink.reduce[Int](_ + _))(Keep.right).run()
+  r1.to(Sink.foreach[Int](println)).run()
 
-  val c = Source(1 to 10).concat(materializedSource).runWith(Sink.foreach[Int](println))
+  /**
+    * No Output, This happens because the elements had already been fed into the BroadcastHub, becoz its sink, right, duh, before the
+      materialized source is connected to the foreach sink
+    */
+
 
   import scala.concurrent.Await
   //val r = Await.result(f, 2.seconds)

@@ -145,6 +145,8 @@
 =====Runnable Graphs=====================
 --> Connect all inputs and outputs in Source/Sink/Flows, to create a Runnable Graph.
 --> Once a Runnable Graph is created, the data can start flowing.
+
+=====Fault Tolerance======
     
     
     

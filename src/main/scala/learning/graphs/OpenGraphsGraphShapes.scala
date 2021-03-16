@@ -211,7 +211,7 @@ object FlowFromSinkAndShape2 extends App {
 
   // close in immediately
   val source = Source.tick(1.second, 1.second, "tick")
-  val flow = Flow.fromSinkAndSourceCoupled(Sink.foreach(println), source)
+  val flow: Flow[Any, String, NotUsed] = Flow.fromSinkAndSourceCoupled(Sink.foreach(println), source)
   val r = source.via(flow).to(Sink.foreach(println)).run()
 
 }

@@ -94,6 +94,19 @@ object Flows_4 extends App {
 
 }
 
+object FlatMapping_Flow extends App {
+
+  implicit val system = ActorSystem()
+  implicit val materilaizer = ActorMaterializer()
+
+
+  val simpleSource = Source(List(1, 2))
+  val s1: Source[Int, NotUsed] = simpleSource.flatMapConcat(x => Source(x to (3 * x)))
+  s1.runWith(Sink.foreach(println))
+  println("----")
+  //simpleSource.flatMapMerge(2, x => Source(x to (3 * x))).runWith(Sink.foreach(println))
+}
+
 object Flows_5 extends App {
 
   implicit val system = ActorSystem("DSH-1")
