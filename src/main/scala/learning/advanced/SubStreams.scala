@@ -48,7 +48,7 @@ object SubStreams_1 extends App {
   ))
 
   val totalCharCountFuture = textSource.groupBy(2, string => string.length % 2)
-    .map(_.length) // our expensive computation here, applies for each sub-stream
+    .map(_.length).async // our expensive computation here, applies for each sub-stream
     .mergeSubstreamsWithParallelism(2) // check documentation for details
     //.mergeSubstreams
     .toMat(Sink.reduce[Int](_ + _))(Keep.right)

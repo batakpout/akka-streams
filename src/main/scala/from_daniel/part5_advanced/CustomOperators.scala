@@ -70,7 +70,7 @@ object CustomOperators extends App {
           batch.enqueue(nextElement)
 
           // assume some complex computation
-          Thread.sleep(100)
+
 
           if(batch.size >= batchSize) {
             println("New batch: " + batch.dequeueAll(_ => true).mkString("[", ", ", "]"))

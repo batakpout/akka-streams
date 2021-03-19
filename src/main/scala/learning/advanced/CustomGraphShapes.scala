@@ -94,7 +94,7 @@ object CustomGraphShapes_2 extends App {
   implicit val system = ActorSystem("CGS")
   implicit val materializer = ActorMaterializer()
 
-  case class BalanceMxN[T](val inlets: List[Inlet[T]], val outlets: List[Outlet[T]]) extends Shape {
+  case class BalanceMxN[T](inlets: List[Inlet[T]], outlets: List[Outlet[T]]) extends Shape {
     override def deepCopy(): Shape = BalanceMxN(inlets.map(_.carbonCopy()), outlets.map(_.carbonCopy()))
   }
 
