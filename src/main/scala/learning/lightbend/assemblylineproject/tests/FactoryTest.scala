@@ -16,7 +16,8 @@ class FactoryTest extends WordSpecLike with AkkaSpec {
       val engineShop = new EngineShop(shipmentSize = 20)
       val wheelShop = new WheelShop()
       val qualityAssurance = new QualityAssurance()
-      val factory = new Factory(bodyShop, paintShop, engineShop, wheelShop, qualityAssurance)
+      val upgradeShop = new UpgradeShop
+      val factory = new Factory(bodyShop, paintShop, engineShop, wheelShop, qualityAssurance, upgradeShop)
 
       val cars = factory.orderCars(12).futureValue
 
@@ -29,8 +30,10 @@ class FactoryTest extends WordSpecLike with AkkaSpec {
       val engines = cars.map(_.engine)
       assert(engines.toSet.size === 12)
 
-      val upgrades: Seq[Option[Upgrade]] = cars.map(_.upgrade)
-      assert(upgrades.count(_.isEmpty) === 12)
+      val upgrades = cars.map(_.upgrade)
+      assert(upgrades.count(_.isEmpty) === 4)
+      assert(upgrades.count(_.contains(Upgrade.DX)) === 4)
+      assert(upgrades.count(_.contains(Upgrade.Sport)) === 4)
     }
   }
 }

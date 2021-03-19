@@ -146,9 +146,50 @@
 --> Connect all inputs and outputs in Source/Sink/Flows, to create a Runnable Graph.
 --> Once a Runnable Graph is created, the data can start flowing.
 
-=====Fault Tolerance======
+=======Graphs=================
+--> Graphs introduce the concept of Junctions. Sources/Sinks/Flows are graph elements with a single input and/or single output.
+--> Junctions allow for multiple inputs/outputs.
+--> Basic Junction types are fan-in and fan-out.
+--> fan-out:
+    Broadcast[T] - Incomming elements are emitted to all outputs. (1 input, N output), 
+    Balance[T] - Incomming elements are emitted to one of the outputs(first available) - (1 input, N outputs)
+    UnzipWith[In, A, B] -(1 input, N output): Uses a function to convert 1 input element into N outputs elements and emits one to each output.
+    Unzip[A, B] - (1 input, 2 output)- splits a stream of Tuple2[A, B] into two streams of A and B
     
+--> fan-int:
+    Merge[Int] = N inputs, 1 output) - randomly selects from inputs and pushes to a single output.
+    MergePreferred[Int] - (N inputs, 1 output) similar to merge, but one input is given higher priority over all others. if data comes in on that input,
+    it will push the data , before looking at any other inputs.
+    ZipWith[A, B,..., Out] - (N inputs, 1 output) Uses a function to take one element from each input and convert them all to a single output.
+    Zip[A, B] - (2 inputs, 1 output) - Zips two streams of A and B into a single stream of TUple2[A, B]
+    Concat[A] - (2 inputs, 1 output) concatenates two streams. Consumes one completely before the other.
     
+--> A Graph DSL is provided to simply the creation of complex graphs. Designed to make it easier to translate drawing into code.
+--> import GraphDSL.Implicits._ to enable the DSL
+--> Partial Graphs/Open Graphs (return SourceShape(merge.out)) can be created in the shape of Linear Graph Elements (e.g Source/Sink/Flow)
+--> Some predefined shapes exist to allow for easier graph construction.
+    Linear Shapes (SourceShape, SinkShape, FlowShape)
+    Junction Shapes with the same input/input types UniformFanInShape, UniformFanOutShape 
+    Junction Shapes with different input/output types:
+    FanInShape1, FanInShape2....FanInShape22
+    FanOutShape1, FanOutShape2....FanOutShape22   
     
+--> A simpler API exists for cases where your graph needs are small. Source.combine combines two ore more sources using the provided Fan In Shape
+--> Sink.combine- combines two or more Sinks into a single Sink using the provided Fan Out Shape.
+
+==========Operator Fusion===================
+--> Crossing asynchronous boundaries can be an expensive operation.
+--> By default, akka streams "fuses" all processing stages into a single synchronous stage.
+--> Requires an element to be processed fully before the next element starts i.e from source to sink, end-to-end, boring...
+--> This can be disabled by setting akka.stream.materializer.auto-fusing=off
+--> Stages often make use of a small buffer. Buffers are not present when a stage is fused. i.e ran on single thread
+--> The buffers can result in different behaviour in your stream.
+--> Adding an asynchronous boundary will introduce the buffer.
+
+--> we add async boundary to prevent fusion from happening.
+--> Async boundaries create overhead in the form of: Actors, mailboxes, Buffers.
+--> Important: Introducing Asynchrony is not a magical bullet. Depending on the performance characteristics of your stage it may provide little or no
+     benefit. Understanding your implementation is key.
+
     
 

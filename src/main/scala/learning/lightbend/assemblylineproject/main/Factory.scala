@@ -13,13 +13,15 @@ class Factory(bodyShop: BodyShop,
               paintShop: PaintShop,
               engineShop: EngineShop,
               wheelShop: WheelShop,
-              qualityAssurance: QualityAssurance)
+              qualityAssurance: QualityAssurance,
+              upgradeShop: UpgradeShop)
              (implicit system: ActorSystem, materializer: ActorMaterializer) {
   def orderCars(quantity: Int): Future[Seq[Car]] = {
     bodyShop.cars
       .via(paintShop.paint)
       .via(engineShop.installEngine)
       .via(wheelShop.installWheels)
+      .via(upgradeShop.installUpgrades)
       .via(qualityAssurance.inspect)
       .take(quantity)
       .runWith(Sink.seq)
@@ -37,10 +39,11 @@ object FactoryTest extends App {
   val engineShop = new EngineShop(shipmentSize = 20)
   val wheelShop = new WheelShop()
   val qualityAssurance = new QualityAssurance()
-  val factory = new Factory(bodyShop, paintShop, engineShop, wheelShop, qualityAssurance)
+  val upgrade = new UpgradeShop()
+  val factory = new Factory(bodyShop, paintShop, engineShop, wheelShop, qualityAssurance, upgrade)
 
   import system.dispatcher
-  factory.orderCars(2).map {x =>
+  factory.orderCars(1).map {x =>
     println(x)
     println("\n\n")
   }
