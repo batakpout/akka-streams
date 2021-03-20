@@ -229,6 +229,15 @@
     If you would like, you may introduce additional asynchronous boundaries to test whether you can see any more improvement. However, due to the structure of    	the stream and that the longest section of 10 ms can't be bisected further, any additional benefits should be insignificant.
 
 
+--> In summary, the methodology to optimize stream Fusion using async boundaries is:
+
+	-Instrument your stream (RunnableGraph) with Lightbend Telemetry.
+	- Run the stream for baseline metrics:
+	- Determine operator processing times using the Operator Processing Times graph and
+	- Determine overall stream throughput using the Stream Throughput graph.
+	- Apply Fusion optimization principles to bisect the stream, thus determining the first async boundary insertion point.
+	- Run the stream to compare against your throughput baseline metric.
+	- Repeat if further async boundaries can improve the stream throughput metric.
 
 
 
