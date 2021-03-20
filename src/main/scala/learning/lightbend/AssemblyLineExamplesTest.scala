@@ -147,3 +147,27 @@ object WheelTest extends App {
 
   cars.via(installWheels).to(Sink.foreach[UnfinishedCar](println)).run()
 }
+
+object WheelLoopTest extends App {
+
+  implicit val system = ActorSystem("FirstPrinciples-9")
+  implicit val materializer = ActorMaterializer()
+
+  val cars: Source[UnfinishedCar, NotUsed] = Source.repeat(UnfinishedCar())
+
+  val wheels: Source[Wheel, NotUsed] = {
+    Source.repeat(Wheel())
+  }
+
+  def installWheels: Flow[UnfinishedCar, UnfinishedCar, NotUsed] = {
+    Flow[UnfinishedCar].zip(wheels.grouped(4)).map {
+      case (car, wheels) => {
+        println("Inside=====")
+        car.installWheels(wheels)
+      }
+    }
+  }
+
+
+  cars.via(installWheels).take(4).runWith(Sink.ignore)
+}

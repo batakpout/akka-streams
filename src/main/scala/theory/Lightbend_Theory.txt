@@ -190,6 +190,45 @@
 --> Async boundaries create overhead in the form of: Actors, mailboxes, Buffers.
 --> Important: Introducing Asynchrony is not a magical bullet. Depending on the performance characteristics of your stage it may provide little or no
      benefit. Understanding your implementation is key.
+     
+--> The general principles of Fusion optimization are:
+    - To improve performance in our stream we need to take the longest fused portion and insert an asynchronous boundary.
+    - We insert an async boundary to bisect the stream into two subsections of roughly equal processing time.
+    -For example, imagine that the longest fused portion of the Factory RunnableGraph stage busy times is:
+   	...paint)           // busy(5.millis)
+	...installEngine)   // busy(5.millis)
+	...installWheels)   // busy(5.millis)
+	...installUpgrades) // busy(5.millis)
+	Thus bisect the fused stream as follows:
+	...paint)           // busy(5.millis)
+	...installEngine)   // busy(5.millis)
+	BISECT
+	...installWheels)   // busy(5.millis)
+	...installUpgrades) // busy(5.millis)
+	
+--> Where this is not feasible, we try to get as close as we can.
+	In our case, we start with a single fused section that we want to partition.
+	...paint)           // busy(2.millis)
+	...installEngine)   // busy(2.millis)
+	...installWheels)   // busy(10.millis)
+	...installUpgrades) // busy(2.millis)
+	Due to the 10 ms busy time on the installWheels, we can't bisect the stream into two equal halves, 
+	so instead we aim for 4 ms on one side of the async boundary and 12 ms on the other. That's the closest we can get to an equal stream bisection with the 		current setup.
 
-    
+--> General principles of Fusion optimization - using two async boundaries we tested this.
+	-To improve performance in our stream we need to take the longest fused portion and insert an asynchronous boundary.
+	-We insert an async boundary to bisect the stream into two subsections of roughly equal processing time.
+	- Where this is not feasible, we try to get as close as we can.
+	- Once we have bisected the stream into two subsections, try to further bisect the new longest fused section.
+	- Repeat this process until the longest section can't be broken down or bisected further.
+	- Note:  You are always limited by the processing time of the longest fused section. So if one section takes 10 ms, then partitioning a section that only 			takes 4 ms won't provide significant benefit.
+	- Note:  For lower throughput streams, the overhead of an asynchronous boundary may be insignificant. In this case, putting asynchronous boundaries 		everywhere may not hurt (but also may not help). 
+	However, for high throughput streams, the overhead may exceed the benefit and could actually slow down your stream.
+	
+--> Best Practice: Understand the performance of your stream and measure the impact of your asynchronous boundaries.
+    If you would like, you may introduce additional asynchronous boundaries to test whether you can see any more improvement. However, due to the structure of    	the stream and that the longest section of 10 ms can't be bisected further, any additional benefits should be insignificant.
+
+
+
+
 

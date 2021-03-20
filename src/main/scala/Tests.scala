@@ -1,9 +1,10 @@
 import akka.{Done, NotUsed}
 import akka.actor.ActorSystem
+import akka.event.LoggingAdapter
 import akka.stream.ActorMaterializer
 import akka.stream.scaladsl.{Keep, Sink, Source}
 
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration._
 import scala.util.{Failure, Success}
@@ -55,4 +56,30 @@ object TestStream extends App {
     }
   }
   Thread.sleep(3000)
+}
+
+object ImplicitTest extends App {
+
+  import scala.concurrent.ExecutionContext.Implicits.global
+
+  implicit class TimedFuture[A](future: Future[A]) {
+    def withTimer(name: String): Future[A] = {
+
+      val startTime = System.currentTimeMillis()
+      future.andThen {
+        case _ =>
+          val endTime = System.currentTimeMillis()
+          println(s"$name completed in ${endTime - startTime}ms")
+      }
+    }
+  }
+
+  val result = Future {
+    Thread.sleep(5000)
+    10
+  }
+
+  result.withTimer("timer")
+
+  Thread.sleep(200000)
 }
