@@ -1,8 +1,8 @@
 import akka.{Done, NotUsed}
 import akka.actor.ActorSystem
 import akka.event.LoggingAdapter
-import akka.stream.ActorMaterializer
-import akka.stream.scaladsl.{Keep, Sink, Source}
+import akka.stream.{ActorMaterializer, ClosedShape}
+import akka.stream.scaladsl.{Balance, Flow, GraphDSL, Keep, RunnableGraph, Sink, Source, Merge}
 
 import scala.concurrent.{ExecutionContext, Future}
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -82,4 +82,41 @@ object ImplicitTest extends App {
   result.withTimer("timer")
 
   Thread.sleep(200000)
+}
+
+object Stackoverflow1 extends App {
+
+  case class StartMills(mills: Long, flowName: String)
+
+  implicit val system = ActorSystem("system")
+  implicit val materializer = ActorMaterializer()
+
+  //def Merge[T](i: Int) = ???
+
+  val g = RunnableGraph.fromGraph(GraphDSL.create() { implicit builder: GraphDSL.Builder[NotUsed] =>
+    import GraphDSL.Implicits._
+
+    val in = Source.repeat(System.currentTimeMillis())
+
+    val out = Sink.foreach[StartMills] { start =>
+      val end = System.currentTimeMillis()
+      println((end - start.mills) / 1000 + s" sec. Flow: ${start.flowName}")
+    }
+
+    val merge = builder.add(Merge[StartMills](2))
+    val balance = builder.add(Balance[Long](2))
+
+    val slowFlow = Flow[Long].map { num =>
+      scala.util.Random.shuffle((1 to 5000000).toList).sorted
+      StartMills(num, "slow")
+    }
+
+    val fastFlow = Flow[Long].map(StartMills(_, "fast"))
+
+    in ~> balance ~> slowFlow ~> merge ~> out
+    balance ~> fastFlow ~> merge
+    ClosedShape
+  })
+  g.run()
+
 }

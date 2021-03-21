@@ -22,7 +22,7 @@ object Custom_Operators_1 extends App {
   class RandomNumberGenerator(max: Int) extends GraphStage[SourceShape[Int]] {
 
     // step 1: define the ports and the component-specific members
-    val outPort = Outlet[Int]("randomGenerator")
+    val outPort: Outlet[Int] = Outlet[Int]("randomGenerator")
     val random = new Random()
 
     // step 2: construct a new shape

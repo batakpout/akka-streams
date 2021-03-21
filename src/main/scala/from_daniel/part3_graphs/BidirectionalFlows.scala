@@ -1,7 +1,8 @@
 package from_daniel.part3_graphs
 
+import akka.NotUsed
 import akka.actor.ActorSystem
-import akka.stream.{ActorMaterializer, BidiShape, ClosedShape}
+import akka.stream.{ActorMaterializer, BidiShape, ClosedShape, Graph}
 import akka.stream.scaladsl.{Flow, GraphDSL, RunnableGraph, Sink, Source}
 
 object BidirectionalFlows extends App {
@@ -16,7 +17,7 @@ object BidirectionalFlows extends App {
   def decrypt(n: Int)(string: String) = string.map(c => (c - n).toChar)
 
   // bidiFlow
-  val bidiCryptoStaticGraph = GraphDSL.create() { implicit builder =>
+  val bidiCryptoStaticGraph: Graph[BidiShape[String, String, String, String], NotUsed] = GraphDSL.create() { implicit builder =>
     val encryptionFlowShape = builder.add(Flow[String].map(encrypt(3)))
     val decryptionFlowShape = builder.add(Flow[String].map(decrypt(3)))
 
